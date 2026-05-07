@@ -106,7 +106,7 @@
 #include <IndustryStandard/HighPrecisionEventTimerTable.h>
 #include <IndustryStandard/Scsi.h>
 
-#include "../EfiLib/Platform.h"
+#include "../efilib/Platform.h"
 
 
 BOOLEAN CheckError(IN EFI_STATUS Status, IN CHAR16 *where);

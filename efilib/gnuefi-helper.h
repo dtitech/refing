@@ -1,5 +1,5 @@
 /*
- * EfiLib/gnuefi-helper.h
+ * efilib/gnuefi-helper.h
  * Header file for GNU-EFI support in legacy boot code
  *
  * Borrowed from the TianoCore EDK II, with modifications by Rod Smith
@@ -9,7 +9,7 @@
  * are licensed and made available under the terms and conditions of the BSD License
  * which accompanies this distribution.  The full text of the license may be found at
  * http://opensource.org/licenses/bsd-license.php
- * 
+ *
  * THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
  * WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
  *

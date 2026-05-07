@@ -1977,7 +1977,7 @@ VOID EraseUint32List(UINT32_LIST **TheList) {
 #ifdef __MAKEWITH_GNUEFI
 /* When using GNU-EFI, revert to the old ReallocatePool() function, because
    GNU-EFI 4.x changed its definition in a way that broke rEFInd.
-   Modified from EfiLib/BmLib.c (matches GNU-EFI 3.x); original copyright Intel
+   Modified from efilib/BmLib.c (matches GNU-EFI 3.x); original copyright Intel
    & BSD-licensed. */
 VOID *
 MyReallocatePool (

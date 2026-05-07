@@ -26,13 +26,13 @@
 #
 
 [Sources]
-  EfiLib/GenericBdsLib.h
-  EfiLib/BmLib.c
-  EfiLib/DevicePath.c #included into GenericBdsLib
-  EfiLib/BdsConnect.c #included into GenericBdsLib
-  EfiLib/BdsHelper.c
-  EfiLib/BdsTianoCore.c
-  EfiLib/legacy.c
+  efilib/GenericBdsLib.h
+  efilib/BmLib.c
+  efilib/DevicePath.c #included into GenericBdsLib
+  efilib/BdsConnect.c #included into GenericBdsLib
+  efilib/BdsHelper.c
+  efilib/BdsTianoCore.c
+  efilib/legacy.c
   gzip/decompress_inflate.c
   mok/mok.c
   mok/guid.c

@@ -1,7 +1,7 @@
 /*
- * EfiLib/legacy.c
+ * efilib/legacy.c
  * CSM/legacy boot support functions
- * 
+ *
  * Taken from Tianocore source code (mostly IntelFrameworkModulePkg/Universal/BdsDxe/BootMaint/BBSsupport.c)
  *
  * Copyright (c) 2004 - 2011, Intel Corporation. All rights reserved.<BR>
@@ -9,7 +9,7 @@
  * are licensed and made available under the terms and conditions of the BSD License
  * which accompanies this distribution.  The full text of the license may be found at
  * http://opensource.org/licenses/bsd-license.php
- * 
+ *
  * THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
  * WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
  *
@@ -466,7 +466,7 @@ BdsCreateLegacyBootOption (
                         (CHAR8*) Buffer,
                         BufferSize, TRUE);
   MyFreePool (Buffer);
-  
+
   Buffer = NULL;
 
   NewBootOrderList = AllocateZeroPool (*BootOrderListSize + sizeof (UINT16));
@@ -552,7 +552,7 @@ BdsCreateOneLegacyBootOption (
 /**
   Group the legacy boot options in the BootOption.
 
-  The routine assumes the boot options in the beginning that covers all the device 
+  The routine assumes the boot options in the beginning that covers all the device
   types are ordered properly and re-position the following boot options just after
   the corresponding boot options with the same device type.
   For example:
@@ -599,7 +599,7 @@ GroupMultipleLegacyBootOption4SameType (
       continue;
     }
 
-    ASSERT ((mBootOptionBbsMapping[MappingIndex].BbsType & 0xF) < 
+    ASSERT ((mBootOptionBbsMapping[MappingIndex].BbsType & 0xF) <
              sizeof (DeviceTypeIndex) / sizeof (DeviceTypeIndex[0]));
     NextIndex = &DeviceTypeIndex[mBootOptionBbsMapping[MappingIndex].BbsType & 0xF];
     if (*NextIndex == (UINTN) -1) {
@@ -691,7 +691,7 @@ EfiLibDeleteVariable (
 /**
   Add the legacy boot options from BBS table if they do not exist.
 
-  @retval EFI_SUCCESS          The boot options are added successfully 
+  @retval EFI_SUCCESS          The boot options are added successfully
                                or they are already in boot options.
   @retval EFI_NOT_FOUND        No legacy boot options is found.
   @retval EFI_OUT_OF_RESOURCE  No enough memory.

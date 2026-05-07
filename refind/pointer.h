@@ -30,7 +30,7 @@
 #endif
 
 #ifndef _EFI_POINT_H
-#include "../EfiLib/AbsolutePointer.h"
+#include "../efilib/AbsolutePointer.h"
 #endif
 
 typedef struct PointerStateStruct {

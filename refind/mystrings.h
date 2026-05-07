@@ -32,7 +32,7 @@
 #else
 #include "../include/tiano_includes.h"
 #endif
-#include "../EfiLib/GenericBdsLib.h"
+#include "../efilib/GenericBdsLib.h"
 
 typedef struct _string_list {
     CHAR16               *Value;

@@ -72,8 +72,8 @@
 #endif
 #include "mystrings.h"
 #include "log.h"
-#include "../EfiLib/BdsHelper.h"
-#include "../EfiLib/legacy.h"
+#include "../efilib/BdsHelper.h"
+#include "../efilib/legacy.h"
 #include "../include/Handle.h"
 
 extern REFIT_MENU_ENTRY MenuEntryReturn;

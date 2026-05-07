@@ -14,7 +14,7 @@ LIBEG_DIR=libeg
 MOK_DIR=mok
 GZIP_DIR=gzip
 GPTSYNC_DIR=gptsync
-EFILIB_DIR=EfiLib
+EFILIB_DIR=efilib
 # Two possible locations for TianoCore toolkit:
 # TIANOBASE is used with "tiano" targets and
 # EDK2BASE is used with "edk2" targets
@@ -109,7 +109,7 @@ fs_gnuefi:
 # useless on ARM64, skipping it is no big deal....
 tiano:
 	-include $(TIANOBASE)/Conf/target.txt
-	+make MAKEWITH=TIANO AR_TARGET=EfiLib -C $(EFILIB_DIR) -f Make.tiano
+	+make MAKEWITH=TIANO AR_TARGET=efilib -C $(EFILIB_DIR) -f Make.tiano
 	+make MAKEWITH=TIANO AR_TARGET=libeg -C $(LIBEG_DIR) -f Make.tiano
 	+make MAKEWITH=TIANO AR_TARGET=mok -C $(MOK_DIR) -f Make.tiano
 	+make MAKEWITH=TIANO AR_TARGET=gzip -C $(GZIP_DIR) -f Make.tiano

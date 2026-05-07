@@ -1,5 +1,5 @@
 /*
- * EfiLib/BdsHelper.c
+ * efilib/BdsHelper.c
  * Functions to call legacy BIOS API.
  *
  */

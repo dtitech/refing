@@ -1,5 +1,5 @@
 #
-# EfiLib/Makefile
+# efilib/Makefile
 #
 
 # This program is licensed under the terms of the GNU GPL, version 3,
@@ -14,7 +14,7 @@ VPATH = $(SRCDIR)
 LOCAL_GNUEFI_CFLAGS  = -I$(SRCDIR) -I$(SRCDIR)/../include
 
 OBJS            = gnuefi-helper.o legacy.o BdsHelper.o BdsTianoCore.o
-TARGET          = libEfiLib.a
+TARGET          = libefilib.a
 
 all: $(TARGET)
 

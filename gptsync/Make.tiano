@@ -39,7 +39,7 @@ TIANO_INCLUDE_DIRS = -I $(TIANOBASE)/MdePkg \
 		     -I ../include \
 		     -I ..
 
-GPTSYNC_NAMES    = gptsync lib os_efi AutoGen ../EfiLib/BmLib
+GPTSYNC_NAMES    = gptsync lib os_efi AutoGen ../efilib/BmLib
 OBJS             = $(GPTSYNC_NAMES:=.obj)
 BUILDME          = gptsync_$(FILENAME_CODE).efi
 
