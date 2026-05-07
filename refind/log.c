@@ -22,11 +22,11 @@
 #include "../include/refit_call_wrapper.h"
 #include "screen.h"
 #include "menu.h"
+#include "../efilib/efilib_time.h"
 
 EFI_FILE_HANDLE  gLogHandle;
 CHAR16           *gLogTemp = NULL;
 BOOLEAN          gLogActive = FALSE;
-
 
 EFI_STATUS DeleteFile(IN EFI_FILE_PROTOCOL *BaseDir, CHAR16 *FileName) {
     EFI_FILE_HANDLE FileHandle;
@@ -152,7 +152,7 @@ VOID StopLogging(VOID) {
 // LogLineType specifies the type of the log line, as specified by the
 // LOG_LINE_* constants defined in log.h.
 VOID WriteToLog(CHAR16 **Message, UINTN LogLineType) {
-    CHAR16   *TimeStr;
+    UINT64   Time;
     CHAR16   *FinalMessage = NULL;
     UINTN    BufferSize;
 
@@ -165,10 +165,8 @@ VOID WriteToLog(CHAR16 **Message, UINTN LogLineType) {
                 FinalMessage = PoolPrint(L"\n----------%s----------\n", *Message);
                 break;
             default: /* Normally LOG_LINE_NORMAL, but if there's a coding error, use this.... */
-                TimeStr = GetTimeString();
-                FinalMessage = PoolPrint(L"%s - %s\n", TimeStr, *Message);
-                if (TimeStr)
-                    FreePool(TimeStr);
+                Time = TimeGet();
+                FinalMessage = PoolPrint(L"%06d.%03d - %s\n", Time / 1000, Time % 1000, *Message);
                 break;
         } // switch
 

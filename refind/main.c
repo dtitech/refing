@@ -71,6 +71,7 @@
 #include "launch_efi.h"
 #include "scan.h"
 #include "log.h"
+#include "../efilib/efilib_time.h"
 #include "../include/refit_call_wrapper.h"
 #include "../include/version.h"
 #include "../libeg/efiConsoleControl.h"
@@ -480,6 +481,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     // bootstrap
     InitializeLib(ImageHandle, SystemTable);
+    TimeInit(ImageHandle);
     Status = InitRefitLib(ImageHandle);
     if (EFI_ERROR(Status))
         return Status;
