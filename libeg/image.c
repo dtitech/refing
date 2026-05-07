@@ -151,81 +151,185 @@ EG_IMAGE * egCropImage(IN EG_IMAGE *Image, IN UINTN StartX, IN UINTN StartY, IN 
    return NewImage;
 } // EG_IMAGE * egCropImage()
 
-// The following function implements a bilinear image scaling algorithm, based on
-// code presented at http://tech-algorithm.com/articles/bilinear-image-scaling/.
-// Resize an image; returns pointer to resized image if successful, NULL otherwise.
-// Calling function is responsible for freeing allocated memory.
-// NOTE: x_ratio, y_ratio, x_diff, and y_diff should really be float values;
-// however, I've found that my 32-bit Mac Mini has a buggy EFI (or buggy CPU?), which
-// causes this function to hang on float-to-UINT8 conversions on some (but not all!)
-// float values. Therefore, this function uses integer arithmetic but multiplies
-// all values by FP_MULTIPLIER to achieve something resembling the sort of precision
-// needed for good results.
-EG_IMAGE * egScaleImage(IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeight) {
-   EG_IMAGE *NewImage = NULL;
-   EG_PIXEL a, b, c, d;
-   UINTN x, y, Index ;
-   UINTN i, j;
-   UINTN Offset = 0;
-   UINTN x_ratio, y_ratio, x_diff, y_diff;
+// The following function implements a bilinear image scaling algorithm.
+// The calling function is responsible for freeing the allocated memory.
+//
+// When on 32-bit architectures, the function uses integer arithmetic and
+// then multiplies the values by a 'FP_MULTIPLIER' factor for output close
+// to the precision needed for acceptable results to account for hangs seen
+// on a legacy 32-bit Mac Mini with float-to-UINT8 conversions of some values.
+// However, integer arithmetic may result in artefacts on large ratio conversions
+// and therefore, floating point arithmetic is used for modern 64-bit architectures.
+EG_IMAGE * egScaleImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeight) {
+    EG_IMAGE  *NewImage;
+    EG_PIXEL   a, b, c, d;
+    UINTN      i, j;
+    UINTN      Index;
+    UINTN      Offset;
+    UINTN      Adjuster;
 
-   LOG(3, LOG_LINE_NORMAL, L"Scaling image to %d x %d", NewWidth, NewHeight);
-   if ((Image == NULL) || (Image->Height == 0) || (Image->Width == 0) || (NewWidth == 0) || (NewHeight == 0)) {
-      LOG(1, LOG_LINE_NORMAL, L"In egScaleImage(), Image is NULL or a size is 0");
-      return NULL;
-   }
+    LOG(3, LOG_LINE_NORMAL, L"Scaling image from %dx%d to %dx%d", Image->Width, Image->Height, NewWidth, NewHeight);
 
-   if ((Image->Width == NewWidth) && (Image->Height == NewHeight))
-      return (egCopyImage(Image));
+    if ((NewWidth == 0) || (NewHeight == 0)) {
+        LOG(3, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Invalid Target Image");
+        return NULL;
+    }
 
-   NewImage = egCreateImage(NewWidth, NewHeight, Image->HasAlpha);
-   if (NewImage == NULL) {
-      LOG(1, LOG_LINE_NORMAL, L"In egScaleImage(), unable to create new image");
-      return NULL;
-   }
+    if ((Image == NULL) || (Image->Width == 0) || (Image->Height == 0)) {
+        LOG(3, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Invalid Source Image");
+        return NULL;
+    }
 
-   x_ratio = ((Image->Width - 1) * FP_MULTIPLIER) / NewWidth;
-   y_ratio = ((Image->Height - 1) * FP_MULTIPLIER) / NewHeight;
+    if ((Image->Width < 2) || (Image->Height < 2)) {
+        // Avoid 'out of bounds' read
+        // Min input size/side is 2px
+        return egCopyImage (Image);
+    }
 
-   for (i = 0; i < NewHeight; i++) {
-      for (j = 0; j < NewWidth; j++) {
-         x = (j * (Image->Width - 1)) / NewWidth;
-         y = (i * (Image->Height - 1)) / NewHeight;
-         x_diff = (x_ratio * j) - x * FP_MULTIPLIER;
-         y_diff = (y_ratio * i) - y * FP_MULTIPLIER;
-         Index = ((y * Image->Width) + x);
-         a = Image->PixelData[Index];
-         b = Image->PixelData[Index + 1];
-         c = Image->PixelData[Index + Image->Width];
-         d = Image->PixelData[Index + Image->Width + 1];
+    if ((Image->Width  == NewWidth) && (Image->Height == NewHeight)) {
+        return egCopyImage (Image);
+    }
 
-         // blue element
-         NewImage->PixelData[Offset].b = ((a.b) * (FP_MULTIPLIER - x_diff) * (FP_MULTIPLIER - y_diff) +
-                                          (b.b) * (x_diff) * (FP_MULTIPLIER - y_diff) +
-                                          (c.b) * (y_diff) * (FP_MULTIPLIER - x_diff) +
-                                          (d.b) * (x_diff * y_diff)) / (FP_MULTIPLIER * FP_MULTIPLIER);
+    NewImage = egCreateImage(NewWidth, NewHeight, Image->HasAlpha);
+    if (NewImage == NULL) {
+        LOG(3, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Could *NOT* Create Scaled Image");
+        return NULL;
+    }
 
-         // green element
-         NewImage->PixelData[Offset].g = ((a.g) * (FP_MULTIPLIER - x_diff) * (FP_MULTIPLIER - y_diff) +
-                                          (b.g) * (x_diff) * (FP_MULTIPLIER - y_diff) +
-                                          (c.g) * (y_diff) * (FP_MULTIPLIER - x_diff) +
-                                          (d.g) * (x_diff * y_diff)) / (FP_MULTIPLIER * FP_MULTIPLIER);
+#if !defined(EFI32)
+    // [Floating Point Arithmetic]
+    float      x, y;
+    float      y1_diff, y2_diff;
+    float      x1_diff, x2_diff;
+    float      x_ratio, y_ratio;
 
-         // red element
-         NewImage->PixelData[Offset].r = ((a.r) * (FP_MULTIPLIER - x_diff) * (FP_MULTIPLIER - y_diff) +
-                                          (b.r) * (x_diff) * (FP_MULTIPLIER - y_diff) +
-                                          (c.r) * (y_diff) * (FP_MULTIPLIER - x_diff) +
-                                          (d.r) * (x_diff * y_diff)) / (FP_MULTIPLIER * FP_MULTIPLIER);
+    x_ratio = ((float)(Image->Width  - 1)) / NewWidth;
+    y_ratio = ((float)(Image->Height - 1)) / NewHeight;
 
-         // alpha element
-         NewImage->PixelData[Offset++].a = ((a.a) * (FP_MULTIPLIER - x_diff) * (FP_MULTIPLIER - y_diff) +
-                                            (b.a) * (x_diff) * (FP_MULTIPLIER - y_diff) +
-                                            (c.a) * (y_diff) * (FP_MULTIPLIER - x_diff) +
-                                            (d.a) * (x_diff * y_diff)) / (FP_MULTIPLIER * FP_MULTIPLIER);
-      } // for (j...)
-   } // for (i...)
-   LOG(3, LOG_LINE_NORMAL, L"Scaling of image complete");
-   return NewImage;
+    Offset = 0;
+    for (i = 0; i < NewHeight; i++) {
+        y  = y_ratio * i;
+        y1_diff = y - (UINTN) y;
+        y2_diff = 1.0f - y1_diff;
+
+        Adjuster = (UINTN) y * Image->Width;
+
+        for (j = 0; j < NewWidth; j++) {
+            x  = x_ratio * j;
+            x1_diff = x - (UINTN) x;
+            x2_diff = 1.0f - x1_diff;
+
+            Index = Adjuster + (UINTN) x;
+
+            a = Image->PixelData[Index];
+            b = Image->PixelData[Index + 1];
+            c = Image->PixelData[Index + Image->Width];
+            d = Image->PixelData[Index + Image->Width + 1];
+
+            // Red Element
+            NewImage->PixelData[Offset].r = (UINT8)(
+                (a.r * x2_diff * y2_diff) +
+                (b.r * x1_diff * y2_diff) +
+                (c.r * x2_diff * y1_diff) +
+                (d.r * x1_diff * y1_diff) + 0.5f
+            );
+
+            // Green Element
+            NewImage->PixelData[Offset].g = (UINT8)(
+                (a.g * x2_diff * y2_diff) +
+                (b.g * x1_diff * y2_diff) +
+                (c.g * x2_diff * y1_diff) +
+                (d.g * x1_diff * y1_diff) + 0.5f
+            );
+
+            // Blue Element
+            NewImage->PixelData[Offset].b = (UINT8)(
+                (a.b * x2_diff * y2_diff) +
+                (b.b * x1_diff * y2_diff) +
+                (c.b * x2_diff * y1_diff) +
+                (d.b * x1_diff * y1_diff) + 0.5f
+            );
+
+            // Alpha Element
+            NewImage->PixelData[Offset].a = (UINT8)(
+                (a.a * x2_diff * y2_diff) +
+                (b.a * x1_diff * y2_diff) +
+                (c.a * x2_diff * y1_diff) +
+                (d.a * x1_diff * y1_diff) + 0.5f
+            );
+
+            Offset++;
+        } // for (j...)
+    } // for (i...)
+#else
+    // [Fixed Point Arithmetic]
+    UINTN      x, y;
+    UINTN      y1_diff, y2_diff;
+    UINTN      x1_diff, x2_diff;
+    UINTN      x_ratio, y_ratio;
+
+    x_ratio  = ((Image->Width  - 1) * FP_MULTIPLIER) /  NewWidth;
+    y_ratio  = ((Image->Height - 1) * FP_MULTIPLIER) / NewHeight;
+    Adjuster = FP_MULTIPLIER * FP_MULTIPLIER;
+
+    Offset = 0;
+    for (i = 0; i < NewHeight; i++) {
+        for (j = 0; j < NewWidth; j++) {
+            x = ((Image->Width  - 1) * j) /  NewWidth;
+            y = ((Image->Height - 1) * i) / NewHeight;
+
+            x1_diff = (x_ratio * j) - (FP_MULTIPLIER * x);
+            y1_diff = (y_ratio * i) - (FP_MULTIPLIER * y);
+
+            x2_diff = FP_MULTIPLIER - x1_diff;
+            y2_diff = FP_MULTIPLIER - y1_diff;
+
+            Index  = (Image->Width * y) + x;
+
+            a = Image->PixelData[Index];
+            b = Image->PixelData[Index + 1];
+            c = Image->PixelData[Index + Image->Width];
+            d = Image->PixelData[Index + Image->Width + 1];
+
+            // Red Element
+            NewImage->PixelData[Offset].r = (
+                (a.r * x2_diff * y2_diff) +
+                (b.r * x1_diff * y2_diff) +
+                (c.r * x2_diff * y1_diff) +
+                (d.r * x1_diff * y1_diff)
+            ) / Adjuster;
+
+            // Green Element
+            NewImage->PixelData[Offset].g = (
+                (a.g * x2_diff * y2_diff) +
+                (b.g * x1_diff * y2_diff) +
+                (c.g * x2_diff * y1_diff) +
+                (d.g * x1_diff * y1_diff)
+            ) / Adjuster;
+
+            // Blue Element
+            NewImage->PixelData[Offset].b = (
+                (a.b * x2_diff * y2_diff) +
+                (b.b * x1_diff * y2_diff) +
+                (c.b * x2_diff * y1_diff) +
+                (d.b * x1_diff * y1_diff)
+            ) / Adjuster;
+
+            // Alpha Element
+            NewImage->PixelData[Offset].a = (
+                (a.a * x2_diff * y2_diff) +
+                (b.a * x1_diff * y2_diff) +
+                (c.a * x2_diff * y1_diff) +
+                (d.a * x1_diff * y1_diff)
+            ) / Adjuster;
+
+            Offset++;
+        } // for (j...)
+    } // for (i...)
+#endif
+
+    LOG(3, LOG_LINE_NORMAL, L"Scaling of image complete");
+    return NewImage;
 } // EG_IMAGE * egScaleImage()
 
 VOID egFreeImage(IN EG_IMAGE *Image)
