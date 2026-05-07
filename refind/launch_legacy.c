@@ -114,7 +114,7 @@ static EFI_STATUS ActivateMbrPartition(IN EFI_BLOCK_IO *BlockIO, IN UINTN Partit
     }
     if (!HaveBootCode) {
         // no boot code found in the MBR, add the syslinux MBR code
-        SetMem(SectorBuffer, MBR_BOOTCODE_SIZE, 0);
+        ZeroMem(SectorBuffer, MBR_BOOTCODE_SIZE);
         MyCopyMem(SectorBuffer, syslinux_mbr, SYSLINUX_MBR_SIZE);
     }
 

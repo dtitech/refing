@@ -652,7 +652,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
 
     LOG(2, LOG_LINE_NORMAL, L"Identifying filesystem types....");
     if ((Buffer != NULL) && (Volume != NULL)) {
-        SetMem(&(Volume->VolUuid), sizeof(EFI_GUID), 0);
+        ZeroMem(&(Volume->VolUuid), sizeof(EFI_GUID));
         Volume->FSType = FS_TYPE_UNKNOWN;
 
         if (BufferSize >= (1024 + 100)) {

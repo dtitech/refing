@@ -1682,6 +1682,8 @@ VOID ScanForTools(VOID) {
     AllToolLocations = StrDuplicate(GlobalConfig.ToolLocations);
     MergeStrings(&AllToolLocations, GlobalConfig.ExtraToolLocations, L',');
     for (i = 0; i < NUM_TOOLS; i++) {
+        LOG(4, LOG_LINE_NORMAL, L"ShowTools[%u]: %u", i, GlobalConfig.ShowTools[i]);
+
         switch(GlobalConfig.ShowTools[i]) {
             // NOTE: Be sure that FileName is NULL at the end of each case.
             case TAG_SHUTDOWN:
