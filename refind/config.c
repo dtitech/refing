@@ -1033,10 +1033,15 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
             MyFreePool(Entry->me.Image);
             Entry->me.Image = egLoadIcon(CurrentVolume->RootDir, TokenList[1], GlobalConfig.IconSizes[ICON_SIZE_BIG]);
             if (Entry->me.Image != NULL) {
-                LOG(3, LOG_LINE_NORMAL, L"Icon %s loaded", TokenList[1]);
+                LOG(3, LOG_LINE_NORMAL, L"Icon %s found in %s", TokenList[1], CurrentVolume->VolName);
             } else {
-                LOG(1, LOG_LINE_NORMAL, L"Icon %s not found, using dummy", TokenList[1]);
-                Entry->me.Image = DummyImage(GlobalConfig.IconSizes[ICON_SIZE_BIG]);
+                Entry->me.Image = egFindIconEx(TokenList[1], GlobalConfig.IconSizes[ICON_SIZE_BIG]);
+                if (Entry->me.Image != NULL) {
+                    LOG(3, LOG_LINE_NORMAL, L"Icon %s found in one of icon directories", TokenList[1]);
+                } else {
+                    LOG(1, LOG_LINE_NORMAL, L"Icon %s not found, using dummy", TokenList[1]);
+                    Entry->me.Image = DummyImage(GlobalConfig.IconSizes[ICON_SIZE_BIG]);
+                }
             }
 
         } else if (MyStriCmp(TokenList[0], L"initrd") && (TokenCount > 1)) {

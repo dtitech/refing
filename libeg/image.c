@@ -428,13 +428,47 @@ EG_IMAGE * egLoadIconAnyType(IN EFI_FILE_PROTOCOL *BaseDir, IN CHAR16 *SubdirNam
     while (((Extension = FindCommaDelimited(ICON_EXTENSIONS, i++)) != NULL) && (Image == NULL)) {
         FileName = PoolPrint(L"%s\\%s.%s", SubdirName, BaseName, Extension);
         Image = egLoadIcon(BaseDir, FileName, IconSize);
-        LOG(4, LOG_LINE_NORMAL, L"Have loaded Image in egLoadIconAnyType()");
+        if (Image) {
+            LOG(4, LOG_LINE_NORMAL, L"Loaded icon %s from %s", BaseName, FileName);
+        }
         MyFreePool(Extension);
         MyFreePool(FileName);
     } // while()
 
     return Image;
 } // EG_IMAGE *egLoadIconAnyType()
+
+// This variant tries to load icon without extension, if . is detected
+EG_IMAGE * egLoadIconAnyTypeEx(IN EFI_FILE_PROTOCOL *BaseDir, IN CHAR16 *SubdirName, IN CHAR16 *BaseName, IN UINTN IconSize) {
+    EG_IMAGE *Image = NULL;
+    CHAR16 *Extension;
+    CHAR16 *FileName;
+    UINTN i = 0;
+
+    if (MyStrChr(BaseName, L'.')) {
+        FileName = PoolPrint(L"%s\\%s", SubdirName, BaseName);
+        Image = egLoadIcon(BaseDir, FileName, IconSize);
+        if (Image) {
+            LOG(4, LOG_LINE_NORMAL, L"Loaded icon %s from %s", BaseName, FileName);
+        }
+        MyFreePool(FileName);
+
+        if (Image)
+            return Image;
+    }
+
+    while (((Extension = FindCommaDelimited(ICON_EXTENSIONS, i++)) != NULL) && (Image == NULL)) {
+        FileName = PoolPrint(L"%s\\%s.%s", SubdirName, BaseName, Extension);
+        Image = egLoadIcon(BaseDir, FileName, IconSize);
+        if (Image) {
+            LOG(4, LOG_LINE_NORMAL, L"Loaded icon %s from %s", BaseName, FileName);
+        }
+        MyFreePool(Extension);
+        MyFreePool(FileName);
+    } // while()
+
+    return Image;
+} // EG_IMAGE *egLoadIconAnyTypeEx()
 
 // Returns an icon with any extension in ICON_EXTENSIONS from either the directory
 // specified by GlobalConfig.IconsDir or DEFAULT_ICONS_DIR. The input BaseName
@@ -453,6 +487,21 @@ EG_IMAGE * egFindIcon(IN CHAR16 *BaseName, IN UINTN IconSize) {
 
    if (Image == NULL) {
       Image = egLoadIconAnyType(SelfDir, DEFAULT_ICONS_DIR, BaseName, IconSize);
+   }
+
+   return Image;
+} // EG_IMAGE * egFindIcon()
+
+// This variant tries to load icon without extension first, if . is detected
+EG_IMAGE * egFindIconEx(IN CHAR16 *BaseName, IN UINTN IconSize) {
+   EG_IMAGE *Image = NULL;
+
+   if (GlobalConfig.IconsDir != NULL) {
+      Image = egLoadIconAnyTypeEx(SelfDir, GlobalConfig.IconsDir, BaseName, IconSize);
+   }
+
+   if (Image == NULL) {
+      Image = egLoadIconAnyTypeEx(SelfDir, DEFAULT_ICONS_DIR, BaseName, IconSize);
    }
 
    return Image;

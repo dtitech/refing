@@ -111,6 +111,61 @@ CHAR16* MyStrStr (IN CHAR16  *String, IN CHAR16  *StrCharSet)
     }
 } // CHAR16 *MyStrStr()
 
+/*++
+ *
+ * Routine Description:
+ *
+ *  Return pointer reference for first occurence of char in string
+ *
+ * Arguments:
+ *
+ *  String      - Null-terminated string to search.
+ *  C           - Char to search for.
+ *
+ * Returns:
+ *  Pointer to first occurence of matching char in string, or NULL otherwise.
+ * --*/
+CHAR16* MyStrChr (IN CHAR16 *String, IN CHAR16 C)
+{
+    do
+    {
+        if (*String == C)
+            return String;
+    }
+    while (*String++);
+
+    return NULL;
+}
+
+/*++
+ *
+ * Routine Description:
+ *
+ *  Return pointer reference for last occurence of char in string
+ *
+ * Arguments:
+ *
+ *  String      - Null-terminated string to search.
+ *  C           - Char to search for.
+ *
+ * Returns:
+ *  Pointer to last occurence of matching char in string, or NULL otherwise.
+ * --*/
+CHAR16* MyStrRChr (IN CHAR16 *String, IN CHAR16 C)
+{
+    CHAR16 *Last = NULL;
+
+    do
+    {
+        if (*String == C)
+            Last = String;
+    }
+    while (*String++);
+
+    return Last ? Last : NULL;
+}
+
+
 // Convert input string to all-lowercase.
 // DO NOT USE the standard StrLwr() function, since it's broken on some EFIs!
 VOID ToLower(CHAR16 * MyString) {
