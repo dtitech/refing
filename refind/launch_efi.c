@@ -144,8 +144,10 @@ UINTN IsValidLoader(EFI_FILE_PROTOCOL *RootDir, CHAR16 *FileName) {
     } // if
 
     Status = refit_call5_wrapper(RootDir->Open, RootDir, &FileHandle, FileName, EFI_FILE_MODE_READ, 0);
-    if (EFI_ERROR(Status))
+    if (EFI_ERROR(Status)) {
+        LOG(1, LOG_LINE_NORMAL, L"Unable to open %s to determine if it's a valid loader!", FileName);
         return LOADER_TYPE_INVALID;
+    }
 
     Status = refit_call3_wrapper(FileHandle->Read, FileHandle, &LoadedSize, Header);
     refit_call1_wrapper(FileHandle->Close, FileHandle);
