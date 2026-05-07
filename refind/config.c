@@ -877,6 +877,8 @@ static VOID AddSubmenu(LOADER_ENTRY *Entry, REFIT_FILE *File, REFIT_VOLUME *Volu
     UINTN              TokenCount;
     CHAR16             **TokenList;
 
+    LOG(4, LOG_LINE_NORMAL, L"submenuentry: %s", Title);
+
     SubScreen = InitializeSubScreen(Entry);
 
     // Set defaults for the new entry; will be modified based on lines read from the config. file....
@@ -889,23 +891,37 @@ static VOID AddSubmenu(LOADER_ENTRY *Entry, REFIT_FILE *File, REFIT_VOLUME *Volu
     while (((TokenCount = ReadTokenLine(File, &TokenList)) > 0) && (StrCmp(TokenList[0], L"}") != 0)) {
 
         if (MyStriCmp(TokenList[0], L"loader") && (TokenCount > 1)) { // set the boot loader filename
+            LOG(4, LOG_LINE_NORMAL, L"loader: %s", TokenList[1]);
             MyFreePool(SubEntry->LoaderPath);
             SubEntry->LoaderPath = StrDuplicate(TokenList[1]);
             SubEntry->Volume = Volume;
 
         } else if (MyStriCmp(TokenList[0], L"volume") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"volume: %s", TokenList[1]);
             if (FindVolume(&Volume, TokenList[1])) {
                 if ((Volume != NULL) && (Volume->IsReadable) && (Volume->RootDir)) {
+                    LOG(3, LOG_LINE_NORMAL, L"Volume %s found and usable", TokenList[1]);
                     MyFreePool(SubEntry->me.Title);
                     SubEntry->me.Title      = PoolPrint(L"Boot %s from %s",
                                                         (Title != NULL) ? Title : L"Unknown",
                                                         Volume->VolName);
                     SubEntry->me.BadgeImage = Volume->VolBadgeImage;
                     SubEntry->Volume        = Volume;
-                } // if volume is readable
-            } // if match found
+                } else { // if volume is readable
+                    if (!Volume->IsReadable) {
+                        LOG(1, LOG_LINE_NORMAL, L"Volume %s found, but is unreadable", TokenList[1]);
+                    } else if (!Volume->RootDir) {
+                        LOG(1, LOG_LINE_NORMAL, L"Volume %s found, but is not RootDir", TokenList[1]);
+                    } else {
+                        LOG(1, LOG_LINE_NORMAL, L"Volume %s found, but is not usable", TokenList[1]);
+                    }
+                }
+            } else { // if match found
+                LOG(1, LOG_LINE_NORMAL, L"Unable to find volume %s", TokenList[1]);
+            }
 
         } else if (MyStriCmp(TokenList[0], L"initrd")) {
+            LOG(4, LOG_LINE_NORMAL, L"initrd: %s", TokenList[1]);
             MyFreePool(SubEntry->InitrdPath);
             SubEntry->InitrdPath = NULL;
             if (TokenCount > 1) {
@@ -913,6 +929,7 @@ static VOID AddSubmenu(LOADER_ENTRY *Entry, REFIT_FILE *File, REFIT_VOLUME *Volu
             }
 
         } else if (MyStriCmp(TokenList[0], L"options")) {
+            LOG(4, LOG_LINE_NORMAL, L"options: %s", TokenList[1]);
             MyFreePool(SubEntry->LoadOptions);
             SubEntry->LoadOptions = NULL;
             if (TokenCount > 1) {
@@ -923,9 +940,11 @@ static VOID AddSubmenu(LOADER_ENTRY *Entry, REFIT_FILE *File, REFIT_VOLUME *Volu
             MergeStrings(&SubEntry->LoadOptions, TokenList[1], L' ');
 
         } else if (MyStriCmp(TokenList[0], L"graphics") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"graphics: %s", TokenList[1]);
             SubEntry->UseGraphicsMode = MyStriCmp(TokenList[1], L"on");
 
         } else if (MyStriCmp(TokenList[0], L"disabled")) {
+            LOG(4, LOG_LINE_NORMAL, L"disabled:");
             SubEntry->Enabled = FALSE;
         } // ief/elseif
 
@@ -954,6 +973,8 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
     BOOLEAN      DefaultsSet = FALSE, AddedSubmenu = FALSE;
     REFIT_VOLUME *CurrentVolume = Volume, *PreviousVolume;
 
+    LOG(4, LOG_LINE_NORMAL, L"menuentry: %s", Title);
+
     // prepare the menu entry
     Entry = InitializeLoaderEntry(NULL);
     if (Entry == NULL)
@@ -973,6 +994,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
     // is "}" or when the end of file is reached.
     while (((TokenCount = ReadTokenLine(File, &TokenList)) > 0) && (StrCmp(TokenList[0], L"}") != 0)) {
         if (MyStriCmp(TokenList[0], L"loader") && (TokenCount > 1)) { // set the boot loader filename
+            LOG(4, LOG_LINE_NORMAL, L"loader: %s", TokenList[1]);
             Entry->LoaderPath = StrDuplicate(TokenList[1]);
             LOG(1, LOG_LINE_NORMAL, L"Adding manual loader for '%s'", Entry->LoaderPath);
             SetLoaderDefaults(Entry, TokenList[1], CurrentVolume);
@@ -981,9 +1003,11 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
             DefaultsSet = TRUE;
 
         } else if (MyStriCmp(TokenList[0], L"volume") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"volume: %s", TokenList[1]);
             PreviousVolume = CurrentVolume;
             if (FindVolume(&CurrentVolume, TokenList[1])) {
                 if ((CurrentVolume != NULL) && (CurrentVolume->IsReadable) && (CurrentVolume->RootDir)) {
+                    LOG(3, LOG_LINE_NORMAL, L"Volume %s found and usable", TokenList[1]);
                     MyFreePool(Entry->me.Title);
                     Entry->me.Title        = PoolPrint(L"Boot %s from %s",
                                                        (Title != NULL) ? Title : L"Unknown",
@@ -991,38 +1015,57 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
                     Entry->me.BadgeImage   = CurrentVolume->VolBadgeImage;
                     Entry->Volume          = CurrentVolume;
                 } else { // It won't work out; reset to previous working volume....
+                    if (!CurrentVolume->IsReadable) {
+                        LOG(1, LOG_LINE_NORMAL, L"Volume %s found, but is unreadable", TokenList[1]);
+                    } else if (!CurrentVolume->RootDir) {
+                        LOG(1, LOG_LINE_NORMAL, L"Volume %s found, but is not RootDir", TokenList[1]);
+                    } else {
+                        LOG(1, LOG_LINE_NORMAL, L"Volume %s found, but is not usable", TokenList[1]);
+                    }
                     CurrentVolume = PreviousVolume;
                 } // if/else volume is readable
-            } // if match found
+            } else { // if match found
+                LOG(1, LOG_LINE_NORMAL, L"Unable to find volume %s", TokenList[1]);
+            }
 
         } else if (MyStriCmp(TokenList[0], L"icon") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"icon: %s", TokenList[1]);
             MyFreePool(Entry->me.Image);
             Entry->me.Image = egLoadIcon(CurrentVolume->RootDir, TokenList[1], GlobalConfig.IconSizes[ICON_SIZE_BIG]);
-            if (Entry->me.Image == NULL) {
+            if (Entry->me.Image != NULL) {
+                LOG(3, LOG_LINE_NORMAL, L"Icon %s loaded", TokenList[1]);
+            } else {
+                LOG(1, LOG_LINE_NORMAL, L"Icon %s not found, using dummy", TokenList[1]);
                 Entry->me.Image = DummyImage(GlobalConfig.IconSizes[ICON_SIZE_BIG]);
             }
 
         } else if (MyStriCmp(TokenList[0], L"initrd") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"initrd: %s", TokenList[1]);
             MyFreePool(Entry->InitrdPath);
             Entry->InitrdPath = StrDuplicate(TokenList[1]);
 
         } else if (MyStriCmp(TokenList[0], L"options") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"options: %s", TokenList[1]);
             MyFreePool(Entry->LoadOptions);
             Entry->LoadOptions = StrDuplicate(TokenList[1]);
 
         } else if (MyStriCmp(TokenList[0], L"ostype") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"ostype: %s", TokenList[1]);
             if (TokenCount > 1) {
                 Entry->OSType = TokenList[1][0];
             }
 
         } else if (MyStriCmp(TokenList[0], L"graphics") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"graphics: %s", TokenList[1]);
             Entry->UseGraphicsMode = MyStriCmp(TokenList[1], L"on");
 
         } else if (MyStriCmp(TokenList[0], L"disabled")) {
+            LOG(4, LOG_LINE_NORMAL, L"disabled:");
             LOG(1, LOG_LINE_NORMAL, L"Entry is disabled");
             Entry->Enabled = FALSE;
 
         } else if (MyStriCmp(TokenList[0], L"firmware_bootnum") && (TokenCount > 1)) {
+            LOG(4, LOG_LINE_NORMAL, L"firmware_bootnum: %s", TokenList[1]);
             Entry->EfiBootNum = StrToHex(TokenList[1], 0, 16);
             Entry->EfiLoaderPath = NULL;
             Entry->LoaderPath = NULL;
