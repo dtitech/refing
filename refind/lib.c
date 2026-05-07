@@ -56,6 +56,7 @@
  */
 
 #pragma pack(0)
+#define GNU_EFI_USE_REALLOCATEPOOL_ABI 0
 #include "global.h"
 #include "lib.h"
 #include "icns.h"
@@ -69,7 +70,7 @@
 #include "mystrings.h"
 
 #ifdef __MAKEWITH_GNUEFI
-#define EfiReallocatePool ReallocatePool
+#define EfiReallocatePool MyReallocatePool
 #else
 #define LibLocateHandle gBS->LocateHandleBuffer
 #define DevicePathProtocol gEfiDevicePathProtocolGuid
@@ -1972,3 +1973,34 @@ VOID EraseUint32List(UINT32_LIST **TheList) {
         *TheList = NextItem;
     } // while
 } // EraseUin32List()
+
+#ifdef __MAKEWITH_GNUEFI
+/* When using GNU-EFI, revert to the old ReallocatePool() function, because
+   GNU-EFI 4.x changed its definition in a way that broke rEFInd.
+   Modified from EfiLib/BmLib.c (matches GNU-EFI 3.x); original copyright Intel
+   & BSD-licensed. */
+VOID *
+MyReallocatePool (
+  IN VOID                 *OldPool,
+  IN UINTN                OldSize,
+  IN UINTN                NewSize
+  )
+{
+  VOID  *NewPool;
+
+  NewPool = NULL;
+  if (NewSize != 0) {
+    NewPool = AllocateZeroPool (NewSize);
+  }
+
+  if (OldPool != NULL) {
+    if (NewPool != NULL) {
+      MyCopyMem (NewPool, OldPool, OldSize < NewSize ? OldSize : NewSize);
+    }
+
+    FreePool (OldPool);
+  }
+
+  return NewPool;
+}
+#endif

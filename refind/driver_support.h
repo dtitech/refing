@@ -22,6 +22,8 @@
 
 #ifdef __MAKEWITH_GNUEFI
 #include <efi.h>
+INTN MyCompareGuid(IN EFI_GUID *Guid1, IN EFI_GUID *Guid2);
+INTN RUNTIMEFUNCTION MyRtCompareGuid(IN EFI_GUID *Guid1, IN EFI_GUID *Guid2);
 #else
 #include "../include/tiano_includes.h"
 #endif

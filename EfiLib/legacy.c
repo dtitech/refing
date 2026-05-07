@@ -16,11 +16,12 @@
  */
 
 #ifdef __MAKEWITH_GNUEFI
+#define GNU_EFI_USE_REALLOCATEPOOL_ABI 0
 #include "efi.h"
 #include "efilib.h"
 #include "gnuefi-helper.h"
 #define EFI_DEVICE_PATH_PROTOCOL EFI_DEVICE_PATH
-#define EfiReallocatePool ReallocatePool
+#define EfiReallocatePool MyReallocatePool
 #define EfiLibLocateProtocol LibLocateProtocol
 #else
 #include "../include/tiano_includes.h"

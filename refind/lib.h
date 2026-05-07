@@ -48,6 +48,7 @@
 #ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
+VOID * MyReallocatePool(IN VOID *OldPool, IN UINTN OldSize, IN UINTN NewSize);
 #define EFI_DEVICE_PATH_PROTOCOL EFI_DEVICE_PATH
 #else
 #include "../include/tiano_includes.h"

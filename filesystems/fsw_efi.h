@@ -42,7 +42,10 @@
 #include "../include/refit_call_wrapper.h"
 
 #ifdef __MAKEWITH_GNUEFI
+// prevent duplicate definitions when compiled against gnu-efi 4.x
+#ifndef _GNU_EFI_4_0
 #define CompareGuid(a, b) CompareGuid(a, b)==0
+#endif
 #endif
 
 #define REFIND_EFI_DISK_IO_PROTOCOL_GUID \

@@ -109,6 +109,8 @@ UnicodeStrToAsciiStr (
   @return The length of String.
 
 **/
+// prevent duplicate definitions when compiled against gnu-efi 4.x
+#ifndef _GNU_EFI_4_0
 UINTN
 AsciiStrLen (
   IN      CONST CHAR8               *String
@@ -129,6 +131,7 @@ AsciiStrLen (
   }
   return Length;
 }
+#endif
 
 /**
   Determine whether a given device path is valid.

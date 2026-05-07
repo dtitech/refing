@@ -99,6 +99,7 @@ EFI_GUID gMyEfiBlockIoProtocolGuid = { 0x964E5B21, 0x6459, 0x11D2, { 0x8E, 0x39,
 EFI_GUID gMyEfiSimpleFileSystemProtocolGuid = { 0x964E5B22, 0x6459, 0x11D2, { 0x8E, 0x39, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B }};
 
 #ifdef __MAKEWITH_GNUEFI
+#define CompareGuid MyCompareGuid
 struct MY_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
 struct MY_EFI_FILE_PROTOCOL;
 
@@ -607,3 +608,38 @@ BOOLEAN LoadDrivers(VOID) {
         ConnectAllDriversToAllControllers();
     return (NumFound > 0);
 } /* BOOLEAN LoadDrivers() */
+
+#ifdef __MAKEWITH_GNUEFI
+/* When using GNU-EFI, revert to the old CompareGuid() and RtCompareGuid()
+   functions, because GNU-EFI 4.x changed their definitions in a way that broke
+   rEFInd. Modified from GNU-EFI 3.x functions in lib/guid.c and
+   lib/runtime/efirtlib.c; original copyright Intel & BSD-licensed. */
+INTN
+MyCompareGuid(
+    IN EFI_GUID     *Guid1,
+    IN EFI_GUID     *Guid2
+    )
+{
+    return MyRtCompareGuid (Guid1, Guid2);
+}
+
+INTN
+RUNTIMEFUNCTION
+MyRtCompareGuid (
+    IN EFI_GUID     *Guid1,
+    IN EFI_GUID     *Guid2
+    )
+{
+    INT32       *g1, *g2, r;
+
+    g1 = (INT32 *) Guid1;
+    g2 = (INT32 *) Guid2;
+
+    r  = g1[0] - g2[0];
+    r |= g1[1] - g2[1];
+    r |= g1[2] - g2[2];
+    r |= g1[3] - g2[3];
+
+    return r;
+}
+#endif

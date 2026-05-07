@@ -38,10 +38,12 @@ UnicodeStrToAsciiStr (
    OUT      CHAR8               *Destination
 );
 
+#ifndef _GNU_EFI_4_0
 UINTN
 AsciiStrLen (
    IN      CONST CHAR8               *String
 );
+#endif
 
 UINTN
 EFIAPI
