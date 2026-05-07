@@ -971,6 +971,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
     UINTN        TokenCount;
     LOADER_ENTRY *Entry;
     BOOLEAN      DefaultsSet = FALSE, AddedSubmenu = FALSE;
+    BOOLEAN      GraphicsSet = FALSE;
     REFIT_VOLUME *CurrentVolume = Volume, *PreviousVolume;
 
     LOG(4, LOG_LINE_NORMAL, L"menuentry: %s", Title);
@@ -997,9 +998,6 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
             LOG(4, LOG_LINE_NORMAL, L"loader: %s", TokenList[1]);
             Entry->LoaderPath = StrDuplicate(TokenList[1]);
             LOG(1, LOG_LINE_NORMAL, L"Adding manual loader for '%s'", Entry->LoaderPath);
-            SetLoaderDefaults(Entry, TokenList[1], CurrentVolume);
-            MyFreePool(Entry->LoadOptions);
-            Entry->LoadOptions = NULL; // Discard default options, if any
             DefaultsSet = TRUE;
 
         } else if (MyStriCmp(TokenList[0], L"volume") && (TokenCount > 1)) {
@@ -1063,6 +1061,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
         } else if (MyStriCmp(TokenList[0], L"graphics") && (TokenCount > 1)) {
             LOG(4, LOG_LINE_NORMAL, L"graphics: %s", TokenList[1]);
             Entry->UseGraphicsMode = MyStriCmp(TokenList[1], L"on");
+            GraphicsSet = TRUE;
 
         } else if (MyStriCmp(TokenList[0], L"disabled")) {
             LOG(4, LOG_LINE_NORMAL, L"disabled:");
@@ -1087,8 +1086,11 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
         FreeTokenLine(&TokenList, &TokenCount);
     } // while()
 
+    if (Entry->LoaderPath)
+        SetLoaderDefaults(Entry, Entry->LoaderPath, CurrentVolume, GraphicsSet);
+
     if (AddedSubmenu)
-         AddMenuEntry(Entry->me.SubScreen, &MenuEntryReturn);
+        AddMenuEntry(Entry->me.SubScreen, &MenuEntryReturn);
 
     if (Entry->InitrdPath) {
         MergeStrings(&Entry->LoadOptions, L"initrd=", L' ');
@@ -1099,7 +1101,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
 
     if (!DefaultsSet) {
         // user included no "loader" line; use bogus one
-        SetLoaderDefaults(Entry, L"\\EFI\\BOOT\\nemo.efi", CurrentVolume);
+        SetLoaderDefaults(Entry, L"\\EFI\\BOOT\\nemo.efi", CurrentVolume, GraphicsSet);
     }
 
     return(Entry);

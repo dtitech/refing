@@ -271,6 +271,74 @@ REFIT_MENU_SCREEN *InitializeSubScreen(IN LOADER_ENTRY *Entry) {
     return SubScreen;
 } // REFIT_MENU_SCREEN *InitializeSubScreen()
 
+CHAR16 *GenerateLoadOptions_Single(CHAR16 *LoadOptions) {
+    CHAR16 *NewOptions = NULL;
+    CHAR16 *CurOption = LoadOptions;
+    CHAR16 *NextOption = MyStrChrDQS(LoadOptions, L' ');
+    UINTN CurLen;
+
+    for (;;) {
+        if (NextOption != NULL) {
+            CurLen = (NextOption - CurOption);
+        } else {
+            CurLen = StrLen(CurOption);
+        }
+
+        if (!(MyStriCmpIL(CurOption, L"quiet") || MyStriCmpIL(CurOption, L"splash"))) {
+            if (MyStriCmpIL(CurOption, L"initrd="))
+                MergeStrings(&NewOptions, L"single", ' ');
+
+            MergeStringsL(&NewOptions, CurOption, CurLen, ' ');
+        }
+
+        if (NextOption) {
+            if (*NextOption == L' ')
+                NextOption++;
+            else if (*NextOption == 0)
+                break;
+        } else
+            break;
+
+        CurOption = NextOption;
+        NextOption = MyStrChrDQS(CurOption, L' ');
+    };
+
+    return NewOptions;
+}
+
+CHAR16 *GenerateLoadOptions_Minimal(CHAR16 *LoadOptions) {
+    CHAR16 *NewOptions = NULL;
+    CHAR16 *CurOption = LoadOptions;
+    CHAR16 *NextOption = MyStrChrDQS(LoadOptions, L' ');
+    UINTN CurLen;
+
+    for (;;) {
+        if (NextOption != NULL) {
+            CurLen = (NextOption - CurOption);
+        } else {
+            CurLen = StrLen(CurOption);
+        }
+
+        if (MyStriCmpIL(CurOption, L"root="))
+            MergeStringsL(&NewOptions, CurOption, CurLen, ' ');
+
+        if (NextOption) {
+            if (*NextOption == L' ')
+                NextOption++;
+            else if (*NextOption == 0)
+                break;
+        } else
+            break;
+
+        CurOption = NextOption;
+        NextOption = MyStrChrDQS(CurOption, L' ');
+    };
+
+    MergeStrings(&NewOptions, L"ro", ' ');
+
+    return NewOptions;
+}
+
 VOID GenerateSubScreen(LOADER_ENTRY *Entry, IN REFIT_VOLUME *Volume, IN BOOLEAN GenerateReturn) {
     REFIT_MENU_SCREEN  *SubScreen;
     LOADER_ENTRY       *SubEntry;
@@ -368,35 +436,60 @@ VOID GenerateSubScreen(LOADER_ENTRY *Entry, IN REFIT_VOLUME *Volume, IN BOOLEAN 
         } // if diagnostics entry found
 
     } else if (Entry->OSType == 'L') {   // entries for Linux kernels with EFI stub loaders
-        File = ReadLinuxOptionsFile(Entry->LoaderPath, Volume);
-        if (File != NULL) {
-            InitrdName =  FindInitrd(Entry->LoaderPath, Volume);
-            TokenCount = ReadTokenLine(File, &TokenList);
-            KernelVersion = FindNumbers(Entry->LoaderPath);
-            if (TokenCount >= 2) {
-                ReplaceSubstring(&(TokenList[1]), KERNEL_VERSION, KernelVersion);
-            }
-            // first entry requires special processing, since it was initially set
-            // up with a default title but correct options by InitializeSubScreen(),
-            // earlier....
-            if ((TokenCount > 1) && (SubScreen->Entries != NULL) && (SubScreen->Entries[0] != NULL)) {
+        if ((Entry->DiscoveryType == DISCOVERY_TYPE_MANUAL) && (Entry->LoadOptions)) {
+            if ((SubScreen->Entries != NULL) && (SubScreen->Entries[0] != NULL)) {
                 MyFreePool(SubScreen->Entries[0]->Title);
-                SubScreen->Entries[0]->Title = TokenList[0] ? StrDuplicate(TokenList[0]) : StrDuplicate(L"Boot Linux");
-            } // if
-            FreeTokenLine(&TokenList, &TokenCount);
-            while ((TokenCount = ReadTokenLine(File, &TokenList)) > 1) {
-                ReplaceSubstring(&(TokenList[1]), KERNEL_VERSION, KernelVersion);
-                SubEntry = InitializeLoaderEntry(Entry);
-                SubEntry->me.Title = TokenList[0] ? StrDuplicate(TokenList[0]) : StrDuplicate(L"Boot Linux");
-                MyFreePool(SubEntry->LoadOptions);
-                SubEntry->LoadOptions = AddInitrdToOptions(TokenList[1], InitrdName);
+                SubScreen->Entries[0]->Title = StrDuplicate(L"Boot with standard options");
+
+                LOG(4, LOG_LINE_NORMAL, L"Linux submenu 0: %s", ((LOADER_ENTRY *)SubScreen->Entries[0])->LoadOptions);
+            }
+
+            SubEntry = InitializeLoaderEntry(Entry);
+            SubEntry->me.Title = StrDuplicate(L"Boot to single-user mode");
+            SubEntry->UseGraphicsMode = FALSE;
+            MyFreePool(SubEntry->LoadOptions);
+            SubEntry->LoadOptions = GenerateLoadOptions_Single(Entry->LoadOptions);
+            LOG(4, LOG_LINE_NORMAL, L"Linux submenu 1: %s", SubEntry->LoadOptions);
+            AddMenuEntry(SubScreen, (REFIT_MENU_ENTRY *)SubEntry);
+
+            SubEntry = InitializeLoaderEntry(Entry);
+            SubEntry->me.Title = StrDuplicate(L"Boot with minimal options");
+            SubEntry->UseGraphicsMode = FALSE;
+            MyFreePool(SubEntry->LoadOptions);
+            SubEntry->LoadOptions = GenerateLoadOptions_Minimal(Entry->LoadOptions);
+            LOG(4, LOG_LINE_NORMAL, L"Linux submenu 2: %s", SubEntry->LoadOptions);
+            AddMenuEntry(SubScreen, (REFIT_MENU_ENTRY *)SubEntry);
+        } else {
+            File = ReadLinuxOptionsFile(Entry->LoaderPath, Volume);
+            if (File != NULL) {
+                InitrdName =  FindInitrd(Entry->LoaderPath, Volume);
+                TokenCount = ReadTokenLine(File, &TokenList);
+                KernelVersion = FindNumbers(Entry->LoaderPath);
+                if (TokenCount >= 2) {
+                    ReplaceSubstring(&(TokenList[1]), KERNEL_VERSION, KernelVersion);
+                }
+                // first entry requires special processing, since it was initially set
+                // up with a default title but correct options by InitializeSubScreen(),
+                // earlier....
+                if ((TokenCount > 1) && (SubScreen->Entries != NULL) && (SubScreen->Entries[0] != NULL)) {
+                    MyFreePool(SubScreen->Entries[0]->Title);
+                    SubScreen->Entries[0]->Title = TokenList[0] ? StrDuplicate(TokenList[0]) : StrDuplicate(L"Boot Linux");
+                } // if
                 FreeTokenLine(&TokenList, &TokenCount);
-                SubEntry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_LINUX;
-                AddMenuEntry(SubScreen, (REFIT_MENU_ENTRY *)SubEntry);
-            } // while
-            MyFreePool(KernelVersion);
-            MyFreePool(InitrdName);
-            MyFreePool(File);
+                while ((TokenCount = ReadTokenLine(File, &TokenList)) > 1) {
+                    ReplaceSubstring(&(TokenList[1]), KERNEL_VERSION, KernelVersion);
+                    SubEntry = InitializeLoaderEntry(Entry);
+                    SubEntry->me.Title = TokenList[0] ? StrDuplicate(TokenList[0]) : StrDuplicate(L"Boot Linux");
+                    MyFreePool(SubEntry->LoadOptions);
+                    SubEntry->LoadOptions = AddInitrdToOptions(TokenList[1], InitrdName);
+                    FreeTokenLine(&TokenList, &TokenCount);
+                    SubEntry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_LINUX;
+                    AddMenuEntry(SubScreen, (REFIT_MENU_ENTRY *)SubEntry);
+                } // while
+                MyFreePool(KernelVersion);
+                MyFreePool(InitrdName);
+                MyFreePool(File);
+            }
         } // if
 
     } else if (Entry->OSType == 'E') {   // entries for ELILO
@@ -471,8 +564,10 @@ VOID GenerateSubScreen(LOADER_ENTRY *Entry, IN REFIT_VOLUME *Volume, IN BOOLEAN 
 // Sets a few defaults for a loader entry -- mainly the icon, but also the OS type
 // code and shortcut letter. For Linux EFI stub loaders, also sets kernel options
 // that will (with luck) work fairly automatically.
-VOID SetLoaderDefaults(LOADER_ENTRY *Entry, CHAR16 *LoaderPath, REFIT_VOLUME *Volume) {
+VOID SetLoaderDefaults(LOADER_ENTRY *Entry, CHAR16 *LoaderPath, REFIT_VOLUME *Volume, BOOLEAN GraphicsSet) {
     CHAR16      *NameClues, *PathOnly, *NoExtension, *OSIconName = NULL, *Temp;
+    BOOLEAN     ScanIcon = (Entry->me.Image == NULL);
+    BOOLEAN     ScanOptions = (Entry->LoadOptions == NULL);
     CHAR16      ShortcutLetter = 0;
 
     NameClues = Basename(LoaderPath);
@@ -482,7 +577,7 @@ VOID SetLoaderDefaults(LOADER_ENTRY *Entry, CHAR16 *LoaderPath, REFIT_VOLUME *Vo
     LOG(3, LOG_LINE_NORMAL, L"Finding loader defaults for '%s'", Entry->me.Title);
     if (Volume->DiskKind == DISK_KIND_NET) {
         MergeStrings(&NameClues, Entry->me.Title, L' ');
-    } else {
+    } else if (ScanIcon) {
         // locate a custom icon for the loader
         // Anything found here takes precedence over the "hints" in the OSIconName variable
         LOG(4, LOG_LINE_NORMAL, L"Trying to load icon in same directory as loader....");
@@ -501,81 +596,135 @@ VOID SetLoaderDefaults(LOADER_ENTRY *Entry, CHAR16 *LoaderPath, REFIT_VOLUME *Vo
         MergeStrings(&OSIconName, Temp, L',');
         MyFreePool(Temp);
         Temp = NULL;
-        if (OSIconName != NULL) {
+        if (OSIconName != NULL)
             ShortcutLetter = OSIconName[0];
-        }
 
         // Add every "word" in the filesystem and partition names, delimited by
         // spaces, dashes (-), underscores (_), or colons (:), to the list of
         // hints to be used in searching for OS icons.
-        LOG(4, LOG_LINE_NORMAL, L"Merging hints based on filesystem name ('%s')", Volume->FsName);
+        LOG(4, LOG_LINE_NORMAL, L"Merging hints based on filesystem and partition name ('%s')", Volume->FsName);
         MergeWords(&OSIconName, Volume->FsName, L',');
-        LOG(4, LOG_LINE_NORMAL, L"Merging hints based on partition name ('%s')", Volume->PartName);
         MergeWords(&OSIconName, Volume->PartName, L',');
     } // if/else network boot
 
-    LOG(4, LOG_LINE_NORMAL, L"Adding hints based on specific loaders");
-    // detect specific loaders
-    if (IsInSubstring(NameClues, GlobalConfig.LinuxPrefixes)) {
-        if (Volume->DiskKind != DISK_KIND_NET) {
-            GuessLinuxDistribution(&OSIconName, Volume, LoaderPath);
-            Entry->LoadOptions = GetMainLinuxOptions(LoaderPath, Volume);
+    // detect os type from loader if not set
+    if (Entry->OSType == 0) {
+        LOG(4, LOG_LINE_NORMAL, L"OS type not set, detecting from loader");
+
+        if (IsInSubstring(NameClues, GlobalConfig.LinuxPrefixes)) {
+            Entry->OSType = 'L';
+        } else if (StriSubCmp(L"refit", LoaderPath) ||
+                   StriSubCmp(L"refind", LoaderPath)) {
+            Entry->OSType = 'R';
+        } else if (StriSubCmp(MACOSX_LOADER_PATH, LoaderPath)) {
+            Entry->OSType = 'M';
+        } else if (MyStriCmp(NameClues, L"e.efi") || MyStriCmp(NameClues, L"elilo.efi") || StriSubCmp(L"elilo", NameClues)) {
+            Entry->OSType = 'E';
+        } else if (StriSubCmp(L"grub", NameClues)) {
+            Entry->OSType = 'G';
+        } else if (MyStriCmp(NameClues, L"cdboot.efi") ||
+                   MyStriCmp(NameClues, L"bootmgr.efi") ||
+                   MyStriCmp(NameClues, L"bootmgfw.efi") ||
+                   MyStriCmp(NameClues, L"bkpbootmgfw.efi")) {
+            Entry->OSType = 'W';
+        } else if (MyStriCmp(NameClues, L"xom.efi")) {
+            Entry->OSType = 'X';
         }
-        MergeStrings(&OSIconName, L"linux", L',');
-        Entry->OSType = 'L';
-        if (ShortcutLetter == 0)
-            ShortcutLetter = 'L';
-        Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_LINUX;
-    } else if (StriSubCmp(L"refit", LoaderPath)) {
-        MergeStrings(&OSIconName, L"refit", L',');
-        Entry->OSType = 'R';
-        ShortcutLetter = 'R';
-    } else if (StriSubCmp(L"refind", LoaderPath)) {
-        MergeStrings(&OSIconName, L"refind", L',');
-        Entry->OSType = 'R';
-        ShortcutLetter = 'R';
-    } else if (StriSubCmp(MACOSX_LOADER_PATH, LoaderPath)) {
-        MergeStrings(&OSIconName, L"mac", L',');
-        Entry->OSType = 'M';
-        ShortcutLetter = 'M';
-        Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_OSX;
-    } else if (MyStriCmp(NameClues, L"diags.efi")) {
-        MergeStrings(&OSIconName, L"hwtest", L',');
-    } else if (MyStriCmp(NameClues, L"e.efi") || MyStriCmp(NameClues, L"elilo.efi") || StriSubCmp(L"elilo", NameClues)) {
-        MergeStrings(&OSIconName, L"elilo,linux", L',');
-        Entry->OSType = 'E';
-        if (ShortcutLetter == 0)
-            ShortcutLetter = 'L';
-        Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_ELILO;
-    } else if (StriSubCmp(L"grub", NameClues)) {
-        MergeStrings(&OSIconName, L"grub,linux", L',');
-        Entry->OSType = 'G';
-        ShortcutLetter = 'G';
-        Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_GRUB;
-    } else if (MyStriCmp(NameClues, L"cdboot.efi") ||
-               MyStriCmp(NameClues, L"bootmgr.efi") ||
-               MyStriCmp(NameClues, L"bootmgfw.efi") ||
-               MyStriCmp(NameClues, L"bkpbootmgfw.efi")) {
-        MergeStrings(&OSIconName, L"win8", L',');
-        Entry->OSType = 'W';
-        ShortcutLetter = 'W';
-        Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_WINDOWS;
-    } else if (MyStriCmp(NameClues, L"xom.efi")) {
-        MergeStrings(&OSIconName, L"xom,win,win8", L',');
-        Entry->OSType = 'X';
-        ShortcutLetter = 'W';
-        Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_WINDOWS;
+        else if (StriSubCmp(L"ipxe", NameClues)) {
+            Entry->OSType = 'N';
+        }
     }
-    else if (StriSubCmp(L"ipxe", NameClues)) {
-        Entry->OSType = 'N';
-        ShortcutLetter = 'N';
-        MergeStrings(&OSIconName, L"network", L',');
+
+    switch (Entry->OSType) {
+        case 'L':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: Linux");
+            if (Volume->DiskKind != DISK_KIND_NET) {
+                if (ScanIcon) {
+                    LOG(4, LOG_LINE_NORMAL, L"Icon not set, trying to guess ditribution");
+                    GuessLinuxDistribution(&OSIconName, Volume, LoaderPath);
+                }
+                if (ScanOptions) {
+                    LOG(4, LOG_LINE_NORMAL, L"Options not set, detecting");
+                    Entry->LoadOptions = GetMainLinuxOptions(LoaderPath, Volume);
+                }
+            }
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"linux", L',');
+            if (ShortcutLetter == 0)
+                ShortcutLetter = 'L';
+            if (!GraphicsSet)
+                Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_LINUX;
+            break;
+        case 'R':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: rEFIt, rEFInd");
+            if (ScanIcon) {
+                if (StriSubCmp(L"refit", LoaderPath))
+                    MergeStrings(&OSIconName, L"refit", L',');
+                else if (StriSubCmp(L"refind", LoaderPath))
+                    MergeStrings(&OSIconName, L"refind", L',');
+            }
+            ShortcutLetter = 'R';
+            break;
+        case 'M':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: MAC");
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"mac", L',');
+            ShortcutLetter = 'M';
+            if (!GraphicsSet)
+                Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_OSX;
+            break;
+        case 'E':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: ELiLo");
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"elilo,linux", L',');
+            if (ShortcutLetter == 0)
+                ShortcutLetter = 'L';
+            if (!GraphicsSet)
+                Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_ELILO;
+            break;
+        case 'G':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: GRUB");
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"grub,linux", L',');
+            ShortcutLetter = 'G';
+            if (!GraphicsSet)
+                Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_GRUB;
+            break;
+        case 'W':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: Windows");
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"win8", L',');
+            ShortcutLetter = 'W';
+            if (!GraphicsSet)
+                Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_WINDOWS;
+            break;
+        case 'X':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: XOM");
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"xom,win,win8", L',');
+            ShortcutLetter = 'W';
+            if (!GraphicsSet)
+                Entry->UseGraphicsMode = GlobalConfig.GraphicsFor & GRAPHICS_FOR_WINDOWS;
+            break;
+        case 'N':
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: Network");
+            if (ScanIcon)
+                MergeStrings(&OSIconName, L"network", L',');
+            ShortcutLetter = 'N';
+            break;
+        default:
+            LOG(4, LOG_LINE_NORMAL, L"Checking for defaults: Other");
+            if (ScanIcon) {
+                if (MyStriCmp(NameClues, L"diags.efi"))
+                    MergeStrings(&OSIconName, L"hwtest", L',');
+            }
+            break;
     }
 
     if ((ShortcutLetter >= 'a') && (ShortcutLetter <= 'z'))
         ShortcutLetter = ShortcutLetter - 'a' + 'A'; // convert lowercase to uppercase
     Entry->me.ShortcutLetter = ShortcutLetter;
-    if (Entry->me.Image == NULL) {
+    if ((ScanIcon) && (Entry->me.Image == NULL)) {
         LOG(4, LOG_LINE_NORMAL, L"Trying to locate an icon based on hints '%s'", OSIconName);
         Entry->me.Image = LoadOSIcon(OSIconName, L"unknown", FALSE);
     }
@@ -663,7 +812,7 @@ static LOADER_ENTRY * AddLoaderEntry(IN OUT CHAR16 *LoaderPath, IN CHAR16 *Loade
         }
         MergeStrings(&(Entry->LoaderPath), LoaderPath, 0);
         Entry->Volume = Volume;
-        SetLoaderDefaults(Entry, LoaderPath, Volume);
+        SetLoaderDefaults(Entry, LoaderPath, Volume, FALSE);
         GenerateSubScreen(Entry, Volume, SubScreenReturn);
         AddMenuEntry(&MainMenu, (REFIT_MENU_ENTRY *)Entry);
         LOG(3, LOG_LINE_NORMAL, L"Have successfully created menu entry for '%s'", Entry->Title);

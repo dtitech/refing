@@ -41,11 +41,14 @@ typedef struct _string_list {
 
 BOOLEAN StriSubCmp(IN CHAR16 *TargetStr, IN CHAR16 *BigStr);
 BOOLEAN MyStriCmp(IN CONST CHAR16 *String1, IN CONST CHAR16 *String2);
+BOOLEAN MyStriCmpIL(IN CONST CHAR16 *String1, IN CONST CHAR16 *String2);
 CHAR16* MyStrStr (IN CHAR16  *String, IN CHAR16  *StrCharSet);
 CHAR16* MyStrChr (IN CHAR16 *String, IN CHAR16 C);
+CHAR16* MyStrChrDQS (IN CHAR16 *String, IN CHAR16 C);
 CHAR16* MyStrRChr (IN CHAR16 *String, IN CHAR16 C);
 VOID ToLower(CHAR16 * MyString);
 VOID MergeStrings(IN OUT CHAR16 **First, IN CHAR16 *Second, CHAR16 AddChar);
+VOID MergeStringsL(IN OUT CHAR16 **First, IN CHAR16 *Second, UINTN Len, CHAR16 AddChar);
 VOID MergeWords(CHAR16 **MergeTo, CHAR16 *InString, CHAR16 AddChar);
 BOOLEAN LimitStringLength(CHAR16 *TheString, UINTN Limit);
 CHAR16 *FindNumbers(IN CHAR16 *InString);

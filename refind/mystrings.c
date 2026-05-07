@@ -61,15 +61,36 @@ BOOLEAN StriSubCmp(IN CHAR16 *SmallStr, IN CHAR16 *BigStr) {
 // Returns TRUE if strings are identical, FALSE otherwise.
 BOOLEAN MyStriCmp(IN CONST CHAR16 *FirstString, IN CONST CHAR16 *SecondString) {
     if (FirstString && SecondString) {
-        while ((*FirstString != L'\0') && ((*FirstString & ~0x20) == (*SecondString & ~0x20))) {
-                FirstString++;
-                SecondString++;
+        while (((*FirstString != 0) && (*SecondString != 0)) &&
+               ((*FirstString & ~0x20) == (*SecondString & ~0x20))) {
+            FirstString++;
+            SecondString++;
         }
+
         return (*FirstString == *SecondString);
     } else {
         return FALSE;
     }
 } // BOOLEAN MyStriCmp()
+
+// Performs a case-insensitive string comparison ignoring length
+// Returns TRUE if strings are identical to length of the shortest, FALSE otherwise
+BOOLEAN MyStriCmpIL(IN CONST CHAR16 *FirstString, IN CONST CHAR16 *SecondString) {
+    if (FirstString && SecondString) {
+        while ((*FirstString != 0) && (*SecondString != 0)) {
+            if ((*FirstString & ~0x20) == (*SecondString & ~0x20)) {
+                FirstString++;
+                SecondString++;
+            } else {
+                return FALSE;
+            }
+        }
+
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+} // BOOLEAN MyStriCmpIL
 
 /*++
  * 
@@ -131,6 +152,44 @@ CHAR16* MyStrChr (IN CHAR16 *String, IN CHAR16 C)
     {
         if (*String == C)
             return String;
+    }
+    while (*String++);
+
+    return NULL;
+}
+
+/*++
+ *
+ * Routine Description:
+ *
+ *  Return pointer reference for first occurence of char in string, ignoring
+ *  text contained in double quotes.
+ *
+ * Arguments:
+ *
+ *  String      - Null-terminated string to search.
+ *  C           - Char to search for.
+ *
+ * Returns:
+ *  Pointer to first occurence of matching char in string, or NULL otherwise.
+ * --*/
+CHAR16* MyStrChrDQS (IN CHAR16 *String, IN CHAR16 C)
+{
+    BOOLEAN Quoted = FALSE;
+
+    do
+    {
+        if (!Quoted) {
+            if (*String == L'"')
+                Quoted = TRUE;
+            else if (*String == C)
+                return String;
+        } else {
+            if (*String == L'"')
+                Quoted = FALSE;
+            else if (*String == 0)
+                break;
+        }
     }
     while (*String++);
 
@@ -213,6 +272,39 @@ VOID MergeStrings(IN OUT CHAR16 **First, IN CHAR16 *Second, CHAR16 AddChar) {
         } // if (*First != NULL)
         if (Second != NULL)
             StrCat(NewString, Second);
+        MyFreePool(*First);
+        *First = NewString;
+    } else {
+        Print(L"Error! Unable to allocate memory in MergeStrings()!\n");
+    } // if/else
+} // VOID MergeStrings()
+
+// Version with defined length for second string
+VOID MergeStringsL(IN OUT CHAR16 **First, IN CHAR16 *Second, UINTN Len, CHAR16 AddChar) {
+    UINTN Length1 = 0;
+    CHAR16* NewString;
+
+    if (*First != NULL)
+        Length1 = StrLen(*First);
+    NewString = AllocatePool(sizeof(CHAR16) * (Length1 + Len + 2));
+    if (NewString != NULL) {
+        if ((*First != NULL) && (Length1 == 0)) {
+            MyFreePool(*First);
+            *First = NULL;
+        }
+        NewString[0] = 0;
+        if (*First != NULL) {
+            StrCat(NewString, *First);
+            if (AddChar) {
+                NewString[Length1] = AddChar;
+                NewString[Length1 + 1] = 0;
+                Length1++;
+            } // if (AddChar)
+        } // if (*First != NULL)
+        if (Second != NULL) {
+            MyCopyMem(&(NewString[Length1]), Second, Len * sizeof(CHAR16));
+            NewString[Length1 + Len] = 0;
+        }
         MyFreePool(*First);
         *First = NewString;
     } else {
