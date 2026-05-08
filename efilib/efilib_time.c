@@ -9,6 +9,8 @@
 #ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
+#else
+#include "../include/tiano_includes.h"
 #endif
 #include "efilib_time.h"
 #include "../include/refit_call_wrapper.h"
