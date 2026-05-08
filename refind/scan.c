@@ -1471,8 +1471,7 @@ static LOADER_ENTRY * AddToolEntry(REFIT_VOLUME *Volume,IN CHAR16 *LoaderPath, I
 // Locates boot loaders. NOTE: This assumes that GlobalConfig.LegacyType is set correctly.
 VOID ScanForBootloaders(BOOLEAN ShowMessage) {
     UINTN    i;
-    CHAR8    s;
-    BOOLEAN  ScanForLegacy = FALSE;
+    BOOLEAN  ScanForLegacy = (GlobalConfig.ScanFor & SCANFOR_FLAG_LEGACY);
     EG_PIXEL BGColor = COLOR_LIGHTBLUE;
     CHAR16   *HiddenTags;
     CHAR16   *OrigDontScanFiles, *OrigDontScanVolumes;
@@ -1480,13 +1479,6 @@ VOID ScanForBootloaders(BOOLEAN ShowMessage) {
     LOG(1, LOG_LINE_SEPARATOR, L"Scanning for boot loaders");
     if (ShowMessage)
         egDisplayMessage(L"Scanning for boot loaders; please wait....", &BGColor, CENTER);
-
-    // Determine up-front if we'll be scanning for legacy loaders....
-    for (i = 0; i < NUM_SCAN_OPTIONS; i++) {
-        s = GlobalConfig.ScanFor[i];
-        if ((s == 'c') || (s == 'C') || (s == 'h') || (s == 'H') || (s == 'b') || (s == 'B'))
-            ScanForLegacy = TRUE;
-    } // for
 
     // If UEFI & scanning for legacy loaders & deep legacy scan, update NVRAM boot manager list
     if ((GlobalConfig.LegacyType == LEGACY_TYPE_UEFI) && ScanForLegacy && GlobalConfig.DeepLegacyScan) {
@@ -1517,37 +1509,41 @@ VOID ScanForBootloaders(BOOLEAN ShowMessage) {
     }
 
     // scan for loaders and tools, add them to the menu
-    for (i = 0; i < NUM_SCAN_OPTIONS; i++) {
-        switch(GlobalConfig.ScanFor[i]) {
-            case 'c': case 'C':
-                ScanLegacyDisc();
-                break;
-            case 'h': case 'H':
-                ScanLegacyInternal();
-                break;
-            case 'b': case 'B':
-                ScanLegacyExternal();
-                break;
-            case 'm': case 'M':
-                ScanUserConfigured(GlobalConfig.ConfigFilename);
-                break;
-            case 'e': case 'E':
-                ScanExternal();
-                break;
-            case 'i': case 'I':
-                ScanInternal();
-                break;
-            case 'o': case 'O':
-                ScanOptical();
-                break;
-            case 'n': case 'N':
-                ScanNetboot();
-                break;
-            case 'f': case 'F':
-                ScanFirmwareDefined(0, NULL, NULL);
-                break;
-        } // switch()
-    } // for
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_LEGACY_DISC) {
+        ScanLegacyDisc();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_LEGACY_INT) {
+        ScanLegacyInternal();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_LEGACY_EXT) {
+        ScanLegacyExternal();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_MANUAL) {
+        ScanUserConfigured(GlobalConfig.ConfigFilename);
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_INT) {
+        ScanInternal();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_EXT) {
+        ScanExternal();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_OPTICAL) {
+        ScanOptical();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_NETBOOT) {
+        ScanNetboot();
+    }
+
+    if (GlobalConfig.ScanFor & SCANFOR_FLAG_FIRMWARE) {
+        ScanFirmwareDefined(0, NULL, NULL);
+    }
 
     // Restore the backed-up GlobalConfig.DontScan* variables....
     MyFreePool(GlobalConfig.DontScanFiles);

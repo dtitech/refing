@@ -792,18 +792,9 @@ VOID FindLegacyBootType(VOID) {
 
 // Warn the user if legacy OS scans are enabled but the firmware can't support them....
 VOID WarnIfLegacyProblems(VOID) {
-    BOOLEAN  found = FALSE;
-    UINTN    i = 0;
+    BOOLEAN  found = (GlobalConfig.ScanFor & SCANFOR_FLAG_LEGACY);
 
     if (GlobalConfig.LegacyType == LEGACY_TYPE_NONE) {
-        do {
-            if (GlobalConfig.ScanFor[i] == 'H' || GlobalConfig.ScanFor[i] == 'h' ||
-                GlobalConfig.ScanFor[i] == 'C' || GlobalConfig.ScanFor[i] == 'c' ||
-                GlobalConfig.ScanFor[i] == 'B' || GlobalConfig.ScanFor[i] == 'b')
-               found = TRUE;
-            i++;
-        } while ((i < NUM_SCAN_OPTIONS) && (!found));
-
         if (found) {
             LOG(1, LOG_LINE_NORMAL, L"BIOS/CSM/legacy support enabled in rEFInd but unavailable in EFI!");
             Print(L"NOTE: refind.conf's 'scanfor' line specifies scanning for one or more legacy\n");

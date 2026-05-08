@@ -222,6 +222,20 @@
 #define HIDEUI_FLAG_BADGES     (0x0100)
 #define HIDEUI_FLAG_ALL       ((0xffff))
 
+// Definitions for the "scanfor" option in refind.conf
+#define SCANFOR_FLAG_NONE          (0)
+#define SCANFOR_FLAG_LEGACY_DISC   (1 << 0)
+#define SCANFOR_FLAG_LEGACY_INT    (1 << 1)
+#define SCANFOR_FLAG_LEGACY_EXT    (1 << 2)
+#define SCANFOR_FLAG_MANUAL        (1 << 3)
+#define SCANFOR_FLAG_INT           (1 << 4)
+#define SCANFOR_FLAG_EXT           (1 << 5)
+#define SCANFOR_FLAG_OPTICAL       (1 << 6)
+#define SCANFOR_FLAG_NETBOOT       (1 << 7)
+#define SCANFOR_FLAG_FIRMWARE      (1 << 8)
+#define SCANFOR_FLAG_ALL           (0x1ff)
+#define SCANFOR_FLAG_LEGACY        (SCANFOR_FLAG_LEGACY_DISC | SCANFOR_FLAG_LEGACY_INT | SCANFOR_FLAG_LEGACY_EXT)
+
 // Default hint text for program-launch submenus
 #define SUBSCREEN_HINT1            L"Use arrow keys to move cursor; Enter to boot;"
 #define SUBSCREEN_HINT2            L"Insert or F2 to edit options; Esc to return to main menu"
@@ -392,7 +406,7 @@ typedef struct {
    CHAR16           *SpoofOSXVersion;
    UINT32_LIST      *CsrValues;
    UINTN            ShowTools[NUM_TOOLS];
-   CHAR8            ScanFor[NUM_SCAN_OPTIONS]; // codes of types of loaders for which to scan
+   UINTN            ScanFor; // bitmap of types of loaders for which to scan
 } REFIT_CONFIG;
 
 // Global variables

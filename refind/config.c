@@ -606,11 +606,30 @@ VOID ReadConfig(CHAR16 *FileName)
             HandleString(TokenList, TokenCount, &(GlobalConfig.IconsDir));
 
         } else if (MyStriCmp(TokenList[0], L"scanfor")) {
-            for (i = 0; i < NUM_SCAN_OPTIONS; i++) {
-                if (i < TokenCount)
-                    GlobalConfig.ScanFor[i] = TokenList[i][0];
-                else
-                    GlobalConfig.ScanFor[i] = ' ';
+            GlobalConfig.ScanFor = 0;
+            for (i = 1; i < TokenCount; i++) {
+                FlagName = TokenList[i];
+                if (MyStriCmp(FlagName, L"internal")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_INT;
+                } else if (MyStriCmp(FlagName, L"external")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_EXT;
+                } else if (MyStriCmp(FlagName, L"optical")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_OPTICAL;
+                } else if (MyStriCmp(FlagName, L"manual")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_MANUAL;
+                } else if (MyStriCmp(FlagName, L"firmware")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_FIRMWARE;
+                } else if (MyStriCmp(FlagName, L"netboot")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_NETBOOT;
+                } else if (MyStriCmp(FlagName, L"hdbios")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_LEGACY_INT;
+                } else if (MyStriCmp(FlagName, L"biosexternal")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_LEGACY_EXT;
+                } else if (MyStriCmp(FlagName, L"cd")) {
+                    GlobalConfig.ScanFor |= SCANFOR_FLAG_LEGACY_DISC;
+                } else {
+                    Print(L" unknown scanfor flag: '%s'\n", FlagName);
+                }
             }
 
         } else if (MyStriCmp(TokenList[0], L"follow_symlinks")) {

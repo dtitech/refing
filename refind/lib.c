@@ -1409,6 +1409,7 @@ VOID ScanVolumes(VOID)
 
 VOID SetVolumeIcons(VOID) {
     UINTN        VolumeIndex;
+    BOOLEAN      ScanForIcons = (GlobalConfig.ScanFor & (~SCANFOR_FLAG_MANUAL)) != 0;
     REFIT_VOLUME *Volume;
 
     LOG(1, LOG_LINE_NORMAL, L"Setting volume icons....");
@@ -1417,7 +1418,7 @@ VOID SetVolumeIcons(VOID) {
         // Set volume icon based on .VolumeBadge icon or disk kind
         LOG(2, LOG_LINE_NORMAL, L"Setting volume badge icon for volume %d", VolumeIndex);
         SetVolumeBadgeIcon(Volume);
-        if (Volumes[VolumeIndex]->DiskKind == DISK_KIND_INTERNAL) {
+        if ((ScanForIcons) && (Volumes[VolumeIndex]->DiskKind == DISK_KIND_INTERNAL)) {
             // get custom volume icons if present
             if (!Volume->VolIconImage) {
                 LOG(2, LOG_LINE_NORMAL, L"Trying to load custom volume icon image for volume %d", VolumeIndex);

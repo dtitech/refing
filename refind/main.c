@@ -154,7 +154,8 @@ REFIT_CONFIG GlobalConfig = { /* TextOnly = */ FALSE,
                               /* CsrValues = */ NULL,
                               /* ShowTools = */ { TAG_SHELL, TAG_MEMTEST, TAG_GDISK, TAG_APPLE_RECOVERY, TAG_WINDOWS_RECOVERY,
                                                   TAG_MOK_TOOL, TAG_ABOUT, TAG_HIDDEN, TAG_SHUTDOWN, TAG_REBOOT, TAG_FIRMWARE,
-                                                  TAG_FWUPDATE_TOOL, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+                                                  TAG_FWUPDATE_TOOL, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                              /* ScanFor = */ 0
                             };
 
 CHAR16 *gHiddenTools = NULL;
@@ -487,10 +488,13 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         return Status;
 
     // read configuration
-    MyCopyMem(GlobalConfig.ScanFor, "ieom       ", NUM_SCAN_OPTIONS);
+    GlobalConfig.ScanFor = SCANFOR_FLAG_INT |
+                           SCANFOR_FLAG_EXT |
+                           SCANFOR_FLAG_OPTICAL |
+                           SCANFOR_FLAG_MANUAL;
     FindLegacyBootType();
     if (GlobalConfig.LegacyType == LEGACY_TYPE_MAC)
-       MyCopyMem(GlobalConfig.ScanFor, "ihebocm    ", NUM_SCAN_OPTIONS);
+       GlobalConfig.ScanFor |= SCANFOR_FLAG_LEGACY;
     SetConfigFilename(ImageHandle);
 
     // Scan volumes first to find SelfVolume, which is needed by LoadDrivers()
