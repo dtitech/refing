@@ -73,7 +73,7 @@ EG_IMAGE * egDecodeJPEG(IN UINT8 *FileData, IN UINTN FileDataLength, IN UINTN Ic
             if (WantAlpha)
                 NewImage->PixelData[i].a = 255;
         }
-        MyFreePool(JpegData);
+
         njDone();
     }
 

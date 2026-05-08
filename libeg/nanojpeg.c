@@ -113,10 +113,9 @@
 #define _NANOJPEG_H
 
 // Modified: Map libc-style free() and malloc() to their EFI equivalents....
+#include "../efilib/efilib_compat.h"
 #define free MyFreePool
 #define malloc AllocatePool
-#define memset(b, c, v) MyMemSet(b, v, c)
-#define memcpy MyMemCpy
 
 
 // nj_result_t: Result codes for njDecode().
@@ -900,7 +899,7 @@ int njInit(void) {
     } // for
     if (retval == 0) {
         for (i = 0; i < 4; i++) {
-            MyFreePool(nj_vlctab[i]);
+            njFreeMem(nj_vlctab[i]);
             nj_vlctab[i] = NULL;
         } // for
     } // if
