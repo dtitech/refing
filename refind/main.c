@@ -109,6 +109,8 @@ REFIT_CONFIG GlobalConfig = { /* TextOnly = */ FALSE,
 #else
                               /* GzippedLoaders = */ FALSE,
 #endif
+                              /* BackgroundColor = */ FALSE,
+                              /* BackgroundPixel = */ { 0, 0, 0, 0 },
                               /* RequestedScreenWidth = */ 0,
                               /* RequestedScreenHeight = */ 0,
                               /* BannerBottomEdge = */ 0,
@@ -507,6 +509,9 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
         StartLogging(FALSE);
         LogBasicInfo();
     }
+
+    InitScreen();
+
     LOG(3, LOG_LINE_NORMAL, L"GlobalConfig.DontScanFiles is '%s'", GlobalConfig.DontScanFiles);
     MokProtocol = SecureBootSetup();
     if (LoadDrivers())
@@ -518,7 +523,6 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     if (GlobalConfig.SpoofOSXVersion && GlobalConfig.SpoofOSXVersion[0] != L'\0')
         SetAppleOSInfo();
 
-    InitScreen();
     WarnIfLegacyProblems();
     MainMenu.TimeoutSeconds = GlobalConfig.Timeout;
 
@@ -534,7 +538,8 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     // SetupScreen() clears the screen; but ScanForBootloaders() may display a
     // message that must be deleted, so do so
-    BltClearScreen(TRUE);
+    BltBackgroundScreen();
+//    SetupScreen();
     pdInitialize();
 
     if (GlobalConfig.ScanDelay > 0) {
@@ -545,7 +550,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
        for (i = 0; i < GlobalConfig.ScanDelay; i++)
           refit_call1_wrapper(BS->Stall, 1000000);
        RescanAll(GlobalConfig.ScanDelay > 1, TRUE);
-       BltClearScreen(TRUE);
+       BltBackgroundScreen();
     } // if
 
     if (GlobalConfig.DefaultSelection)

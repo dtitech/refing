@@ -104,7 +104,8 @@ VOID SwitchToText(IN BOOLEAN CursorEnabled);
 VOID SwitchToGraphics(VOID);
 
 VOID SwitchToGraphicsAndClear(VOID);
-VOID BltClearScreen(IN BOOLEAN ShowBanner);
+VOID BltBackgroundScreen();
+VOID BltExitScreen();
 VOID BltImage(IN EG_IMAGE *Image, IN UINTN XPos, IN UINTN YPos);
 VOID BltImageAlpha(IN EG_IMAGE *Image, IN UINTN XPos, IN UINTN YPos, IN EG_PIXEL *BackgroundPixel);
 //VOID BltImageComposite(IN EG_IMAGE *BaseImage, IN EG_IMAGE *TopImage, IN UINTN XPos, IN UINTN YPos);

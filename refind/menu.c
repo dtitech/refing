@@ -534,7 +534,7 @@ UINTN RunGenericMenu(IN REFIT_MENU_SCREEN *Screen,
             if (GlobalConfig.ScreensaverTime == -1) { // cancel start-with-blank-screen coding
                GlobalConfig.ScreensaverTime = 0;
                if (!GlobalConfig.TextOnly)
-                 BltClearScreen(TRUE);
+                 BltBackgroundScreen();
             }
         }
 

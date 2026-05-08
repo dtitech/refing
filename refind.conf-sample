@@ -107,9 +107,20 @@ use_nvram false
 # size:
 #  noscale     - Crop if too big, show with border if too small
 #  fillscreen  - Fill the screen
+#  fillaspect  - Fill the screen, but maintain aspect ratio, excess will
+#                be cropped
+#  fullfit     - Resize image to fill the screen, but maintain aspect ratio
+#                and dont overflow
 # Default is noscale
 #
-#banner_scale fillscreen
+#banner_scale fillaspect
+
+# Set background color, on auto background color is set from first pixel
+# of banner, or bfbfbf when banner is missing:
+# Default is auto
+#
+#background_color auto
+#background_color ff0000
 
 # Icon sizes. All icons are square, so just one value is specified. The
 # big icons are used for OS selectors in the first row and the small

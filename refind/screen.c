@@ -109,6 +109,9 @@ VOID InitScreen(VOID)
     // initialize libeg
     egInitScreen();
 
+    // save screen for possible restore on exit
+    egScreenSave();
+
     if (egHasGraphicsMode()) {
         LOG(2, LOG_LINE_NORMAL, L"Have graphics mode; setting screen size");
         egGetScreenSize(&UGAWidth, &UGAHeight);
@@ -202,7 +205,7 @@ VOID SetupScreen(VOID)
         } // if
         SwitchToGraphics();
         if (GlobalConfig.ScreensaverTime != -1) {
-           BltClearScreen(TRUE);
+           BltBackgroundScreen();
         } else { // start with screen blanked
            GraphicsScreenDirty = TRUE;
         }
@@ -247,7 +250,7 @@ VOID BeginExternalScreen(IN BOOLEAN UseGraphicsMode, IN CHAR16 *Title)
 
     if (UseGraphicsMode) {
         SwitchToGraphics();
-        BltClearScreen(FALSE);
+        BltExitScreen();
     } else {
         egClearScreen(&DarkBackgroundPixel);
         DrawScreenHeader(Title);
@@ -429,17 +432,33 @@ VOID SwitchToGraphicsAndClear(VOID)
 {
     SwitchToGraphics();
     if (GraphicsScreenDirty)
-        BltClearScreen(TRUE);
+        BltBackgroundScreen();
 }
 
-VOID BltClearScreen(BOOLEAN ShowBanner)
+VOID BltBackgroundScreen()
 {
     static EG_IMAGE *Banner = NULL;
     EG_IMAGE *NewBanner = NULL;
     INTN BannerPosX, BannerPosY;
     EG_PIXEL Black = { 0x0, 0x0, 0x0, 0 };
 
-    if (ShowBanner && !(GlobalConfig.HideUIFlags & HIDEUI_FLAG_BANNER)) {
+    if (GlobalConfig.ScreensaverTime == -1) {
+        LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: ScreenSaver active");
+
+        egClearScreen(&Black);
+        GraphicsScreenDirty = FALSE;
+        return;
+    }
+
+    if (GlobalConfig.ScreenBackground) {
+        LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Blt copy of ScreenBackground");
+        egDrawImage(GlobalConfig.ScreenBackground, 0, 0);
+        GraphicsScreenDirty = FALSE;
+        return;
+    }
+
+    if (!(GlobalConfig.HideUIFlags & HIDEUI_FLAG_BANNER)) {
+        LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: ShowBanner is set");
         // load banner on first call
         if (Banner == NULL) {
             if (GlobalConfig.BannerFileName)
@@ -448,48 +467,129 @@ VOID BltClearScreen(BOOLEAN ShowBanner)
                 Banner = egPrepareEmbeddedImage(&egemb_refind_banner, FALSE);
         }
 
-        if (Banner) {
-           if (GlobalConfig.BannerScale == BANNER_FILLSCREEN) {
-              if ((Banner->Height != UGAHeight) || (Banner->Width != UGAWidth)) {
-                 NewBanner = egScaleImage(Banner, UGAWidth, UGAHeight);
-              } // if
-           } else if ((Banner->Width > UGAWidth) || (Banner->Height > UGAHeight)) {
-              NewBanner = egCropImage(Banner, 0, 0, (Banner->Width > UGAWidth) ? UGAWidth : Banner->Width,
-                                      (Banner->Height > UGAHeight) ? UGAHeight : Banner->Height);
-           } // if/elseif
-           if (NewBanner) {
-              egFreeImage(Banner);
-              Banner = NewBanner;
-           }
-           MenuBackgroundPixel = Banner->PixelData[0];
-        } // if Banner exists
+        while (Banner) {
+            if ((GlobalConfig.BannerScale == BANNER_FILLSCREEN) ||
+                (GlobalConfig.BannerScale == BANNER_FILLASPECT)) {
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: FillScreen/FillAspect Banner");
+                if ((Banner->Height != UGAHeight) || (Banner->Width != UGAWidth)) {
+                    if (GlobalConfig.BannerScale == BANNER_FILLSCREEN)
+                        NewBanner = egScaleImage(Banner, UGAWidth, UGAHeight);
+                    else
+                        NewBanner = egScaleAspectImage(Banner, UGAWidth, UGAHeight);
 
-        // clear and draw banner
-        if (GlobalConfig.ScreensaverTime != -1)
-           egClearScreen(&MenuBackgroundPixel);
-        else
-           egClearScreen(&Black);
+                    if (!NewBanner) { // processing problem, back off
+                        egFreeImage(Banner);
+                        Banner = NULL;
+                        break;
+                    }
 
-        if (Banner != NULL) {
-            BannerPosX = (Banner->Width < UGAWidth) ? ((UGAWidth - Banner->Width) / 2) : 0;
-            BannerPosY = (INTN) (ComputeRow0PosY() / 2) - (INTN) Banner->Height;
-            if (BannerPosY < 0)
-               BannerPosY = 0;
-            GlobalConfig.BannerBottomEdge = BannerPosY + Banner->Height;
-            if (GlobalConfig.ScreensaverTime != -1)
-               BltImage(Banner, (UINTN) BannerPosX, (UINTN) BannerPosY);
+                    egFreeImage(Banner);
+                    Banner = NewBanner;
+                }
+
+                MenuBackgroundPixel = GlobalConfig.BackgroundColor ? GlobalConfig.BackgroundPixel
+                                                                   : Banner->PixelData[0];
+
+                GlobalConfig.BannerBottomEdge = Banner->Height;
+
+                // create copy of banner image
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Copy Banner to ScreenBackground");
+                GlobalConfig.ScreenBackground = egCopyImage(Banner);
+            } else if (GlobalConfig.BannerScale == BANNER_FULLFIT) {
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: FullFit Banner");
+                NewBanner = egScaleFitImage(Banner, UGAWidth, UGAHeight);
+                if (!NewBanner) { // processing problem, back off
+                    egFreeImage(Banner);
+                    Banner = NULL;
+                    break;
+                }
+
+                egFreeImage(Banner);
+                Banner = NewBanner;
+
+                MenuBackgroundPixel = GlobalConfig.BackgroundColor ? GlobalConfig.BackgroundPixel
+                                                                   : Banner->PixelData[0];
+
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Prefill ScreenBackground");
+                GlobalConfig.ScreenBackground = egCreateFilledImage(UGAWidth, UGAHeight, FALSE, &MenuBackgroundPixel);
+
+                // calculate position
+                BannerPosX = (UGAWidth - Banner->Width) / 2;
+                BannerPosY = (UGAHeight - Banner->Height) / 2;
+                GlobalConfig.BannerBottomEdge = BannerPosY + Banner->Height;
+
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Draw Banner");
+                // draw banner
+                egComposeImage(GlobalConfig.ScreenBackground, Banner, (UINTN)BannerPosX, (UINTN)BannerPosY);
+            } else {
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Normal Banner");
+                if ((Banner->Width > UGAWidth) || (Banner->Height > UGAHeight)) {
+                    NewBanner = egCropImage(Banner, 0, 0, (Banner->Width > UGAWidth) ? UGAWidth : Banner->Width,
+                                                          (Banner->Height > UGAHeight) ? UGAHeight : Banner->Height);
+
+                    if (!NewBanner) { // processing problem, back off
+                        egFreeImage(Banner);
+                        Banner = NULL;
+                        break;
+                    }
+
+                    egFreeImage(Banner);
+                    Banner = NewBanner;
+                }
+
+                MenuBackgroundPixel = GlobalConfig.BackgroundColor ? GlobalConfig.BackgroundPixel
+                                                                   : Banner->PixelData[0];
+
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Prefill ScreenBackground");
+                GlobalConfig.ScreenBackground = egCreateFilledImage(UGAWidth, UGAHeight, FALSE, &MenuBackgroundPixel);
+
+                // calculate position
+                BannerPosX = (Banner->Width < UGAWidth) ? ((UGAWidth - Banner->Width) / 2) : 0;
+                BannerPosY = (INTN) (ComputeRow0PosY() / 2) - (INTN) Banner->Height;
+                if (BannerPosY < 0)
+                    BannerPosY = 0;
+                GlobalConfig.BannerBottomEdge = BannerPosY + Banner->Height;
+
+                LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Draw Banner");
+                // draw banner
+                egComposeImage(GlobalConfig.ScreenBackground, Banner, (UINTN)BannerPosX, (UINTN)BannerPosY);
+            } // if/elseif
+
+            break;
         }
 
+        if (!Banner) { // on problem with banner
+            LOG(1, LOG_LINE_NORMAL, L"ERROR: [BltBackgroundScreen] Unable to load/process Banner");
+
+            MenuBackgroundPixel = GlobalConfig.BackgroundColor ? GlobalConfig.BackgroundPixel
+                                                               : StdBackgroundPixel;
+
+            // create menu background color image
+            GlobalConfig.ScreenBackground = egCreateFilledImage(UGAWidth, UGAHeight, FALSE, &MenuBackgroundPixel);
+        }
     } else { // not showing banner
-        // clear to menu background color
-        egClearScreen(&MenuBackgroundPixel);
+        LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: No Banner");
+
+        MenuBackgroundPixel = GlobalConfig.BackgroundColor ? GlobalConfig.BackgroundPixel
+                                                           : StdBackgroundPixel;
+
+        // create menu background color image
+        GlobalConfig.ScreenBackground = egCreateFilledImage(UGAWidth, UGAHeight, FALSE, &MenuBackgroundPixel);
     }
 
+    LOG(4, LOG_LINE_NORMAL, L"BltBackgroundScreen: Blt ScreenBackground");
+    egDrawImage(GlobalConfig.ScreenBackground, 0, 0);
     GraphicsScreenDirty = FALSE;
-    egFreeImage(GlobalConfig.ScreenBackground);
-    GlobalConfig.ScreenBackground = egCopyScreen();
-} // VOID BltClearScreen()
+} // VOID BltBackgroundScreen()
 
+VOID BltExitScreen()
+{
+    LOG(4, LOG_LINE_NORMAL, L"BltExitScreen:");
+    if (egScreenRestore() != EFI_SUCCESS)
+        egClearScreen(&DarkBackgroundPixel);
+
+    GraphicsScreenDirty = FALSE;
+} // VOID BltExitScreen()
 
 VOID BltImage(IN EG_IMAGE *Image, IN UINTN XPos, IN UINTN YPos)
 {

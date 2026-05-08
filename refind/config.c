@@ -81,6 +81,8 @@
 #define GetTime ST->RuntimeServices->GetTime
 #define LAST_MINUTE 1439 /* Last minute of a day */
 
+CONST EG_PIXEL gPixelBlack = { 0, 0, 0, 0 };
+
 //
 // read a file into a buffer
 //
@@ -743,9 +745,25 @@ VOID ReadConfig(CHAR16 *FileName)
                 GlobalConfig.BannerScale = BANNER_NOSCALE;
             } else if (MyStriCmp(TokenList[1], L"fillscreen") || MyStriCmp(TokenList[1], L"fullscreen")) {
                 GlobalConfig.BannerScale = BANNER_FILLSCREEN;
+            } else if (MyStriCmp(TokenList[1], L"fillaspect") || MyStriCmp(TokenList[1], L"fullcrop")) {
+                GlobalConfig.BannerScale = BANNER_FILLASPECT;
+            } else if (MyStriCmp(TokenList[1], L"fullfit")) {
+                GlobalConfig.BannerScale = BANNER_FULLFIT;
             } else {
                 Print(L" unknown banner_type flag: '%s'\n", TokenList[1]);
             } // if/else
+
+        } else if (MyStriCmp(TokenList[0], L"background_color") && (TokenCount == 2)) {
+            if (MyStriCmp(TokenList[1], L"auto")) {
+                GlobalConfig.BackgroundColor = FALSE;
+            } else if (MyStriCmp(TokenList[1], L"black")) {
+                GlobalConfig.BackgroundColor = TRUE;
+                GlobalConfig.BackgroundPixel = gPixelBlack;
+            } else if (egColorFromText(&(GlobalConfig.BackgroundPixel), TokenList[1]) == EFI_SUCCESS) {
+                GlobalConfig.BackgroundColor = TRUE;
+            } else {
+                Print(L" invalid background_color: '%s'\n", TokenList[1]);
+            }
 
         } else if (MyStriCmp(TokenList[0], L"small_icon_size") && (TokenCount == 2)) {
             HandleInt(TokenList, TokenCount, &i);

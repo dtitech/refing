@@ -144,6 +144,8 @@
 // How to scale banner images
 #define BANNER_NOSCALE         0
 #define BANNER_FILLSCREEN      1
+#define BANNER_FILLASPECT      2
+#define BANNER_FULLFIT         3
 
 // Sizes of the default icons; badges are 1/4 the big icon size
 #define DEFAULT_SMALL_ICON_SIZE 48
@@ -365,6 +367,8 @@ typedef struct {
    BOOLEAN          WriteSystemdVars;
    BOOLEAN          FollowSymlinks;
    BOOLEAN          GzippedLoaders;
+   BOOLEAN          BackgroundColor;
+   EG_PIXEL         BackgroundPixel;
    UINTN            RequestedScreenWidth;
    UINTN            RequestedScreenHeight;
    UINTN            BannerBottomEdge;

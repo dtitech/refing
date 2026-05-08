@@ -82,6 +82,64 @@
 #define LibOpenRoot EfiLibOpenRoot
 #endif
 
+CONST UINT8 tblDec_HEX[128] = {
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+  0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+
+//
+// Basic color handling
+//
+
+EFI_STATUS egColorFromText(OUT EG_PIXEL *Color, IN CONST CHAR16 *Value)
+{
+    EG_PIXEL Pixel = { 0, 0, 0, 0 };
+    CONST CHAR16 *Val = Value;
+
+    // Ignore hashtag
+    if (*Val == L'#')
+        Val++;
+
+    for (UINTN Pos = 0; (*Val != 0) && (Pos < 3); Pos++) {
+        UINTN Cnt = 0;
+        UINT8 Num = 0;
+
+        for (;;) {
+            CONST UINT8 Hex = (*Val < 128) ? tblDec_HEX[*Val] : 0xFF;
+            if (Hex >= 128)
+              return EFI_INVALID_PARAMETER;
+            Num |= Hex;
+
+            Cnt++;
+            Val++;
+            if ((*Val != 0) && (Cnt < 2))
+              Num <<= 4;
+            else
+              break;
+        }
+
+        switch (Pos) {
+            case 0:
+              Pixel.r = (UINT8)Num;
+              break;
+            case 1:
+              Pixel.g = (UINT8)Num;
+              break;
+            case 2:
+              Pixel.b = (UINT8)Num;
+              break;
+        }
+    }
+
+    *Color = Pixel;
+    return EFI_SUCCESS;
+}
+
 //
 // Basic image handling
 //
@@ -133,22 +191,30 @@ EG_IMAGE * egCopyImage(IN EG_IMAGE *Image)
 // Returns a smaller image composed of the specified crop area from the larger area.
 // If the specified area is larger than is in the original, returns NULL.
 EG_IMAGE * egCropImage(IN EG_IMAGE *Image, IN UINTN StartX, IN UINTN StartY, IN UINTN Width, IN UINTN Height) {
-   EG_IMAGE *NewImage = NULL;
-   UINTN x, y;
+    EG_IMAGE *NewImage = NULL;
+    UINTN x, y;
 
-   if (((StartX + Width) > Image->Width) || ((StartY + Height) > Image->Height))
-      return NULL;
+//    LOG(4, LOG_LINE_NORMAL, L"Cropping image from %dx%d %dx%d to %dx%d", StartX, StartY, Image->Width, Image->Height, Width, Height);
 
-   NewImage = egCreateImage(Width, Height, Image->HasAlpha);
-   if (NewImage == NULL)
-      return NULL;
+    if (((StartX + Width) > Image->Width) || ((StartY + Height) > Image->Height)) {
+        LOG(1, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Area does *NOT* fit");
+        return NULL;
+    }
 
-   for (y = 0; y < Height; y++) {
-      for (x = 0; x < Width; x++) {
-         NewImage->PixelData[y * NewImage->Width + x] = Image->PixelData[(y + StartY) * Image->Width + x + StartX];
-      }
-   }
-   return NewImage;
+    NewImage = egCreateImage(Width, Height, Image->HasAlpha);
+    if (NewImage == NULL) {
+        LOG(1, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Could *NOT* create Cropped Image");
+        return NULL;
+    }
+
+    for (y = 0; y < Height; y++) {
+        for (x = 0; x < Width; x++) {
+            NewImage->PixelData[y * NewImage->Width + x] = Image->PixelData[(y + StartY) * Image->Width + x + StartX];
+        }
+    }
+
+//    LOG(4, LOG_LINE_NORMAL, L"Cropping of image complete");
+    return NewImage;
 } // EG_IMAGE * egCropImage()
 
 // The following function implements a bilinear image scaling algorithm.
@@ -168,15 +234,15 @@ EG_IMAGE * egScaleImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeig
     UINTN      Offset;
     UINTN      Adjuster;
 
-    LOG(3, LOG_LINE_NORMAL, L"Scaling image from %dx%d to %dx%d", Image->Width, Image->Height, NewWidth, NewHeight);
+    LOG(4, LOG_LINE_NORMAL, L"Scaling image from %dx%d to %dx%d", Image->Width, Image->Height, NewWidth, NewHeight);
 
     if ((NewWidth == 0) || (NewHeight == 0)) {
-        LOG(3, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Invalid Target Image");
+        LOG(1, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Invalid target Image");
         return NULL;
     }
 
     if ((Image == NULL) || (Image->Width == 0) || (Image->Height == 0)) {
-        LOG(3, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Invalid Source Image");
+        LOG(1, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Invalid source Image");
         return NULL;
     }
 
@@ -192,7 +258,7 @@ EG_IMAGE * egScaleImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeig
 
     NewImage = egCreateImage(NewWidth, NewHeight, Image->HasAlpha);
     if (NewImage == NULL) {
-        LOG(3, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Could *NOT* Create Scaled Image");
+        LOG(1, LOG_LINE_NORMAL, L"ERROR: [egScaleImage] Could *NOT* create Scaled Image");
         return NULL;
     }
 
@@ -328,9 +394,113 @@ EG_IMAGE * egScaleImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeig
     } // for (i...)
 #endif
 
-    LOG(3, LOG_LINE_NORMAL, L"Scaling of image complete");
+    LOG(4, LOG_LINE_NORMAL, L"Scaling of image complete");
     return NewImage;
 } // EG_IMAGE * egScaleImage()
+
+// Returns image to scale by one side, cropped reaining aspect
+EG_IMAGE * egScaleFitImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeight) {
+    EG_IMAGE *NewImage;
+    UINTN OrigRatio = (Image->Width * 1000) / Image->Height;
+    UINTN NewRatio = (NewWidth * 1000) / NewHeight;
+
+    LOG(4, LOG_LINE_NORMAL, L"Fit scaling image from %dx%d to %dx%d", Image->Width, Image->Height, NewWidth, NewHeight);
+
+    if (OrigRatio == NewRatio) {
+        NewImage = egScaleImage(Image, NewWidth, NewHeight);
+    } else if (OrigRatio < NewRatio) {
+        // example 1920 x 1200 -> 2560 x 1440
+        if (Image->Height != NewHeight) {
+            UINTN TmpWidth = (NewHeight * OrigRatio) / 1000;
+            UINTN TmpHeight = NewHeight;
+
+            LOG(4, LOG_LINE_NORMAL, L"Fit scaling need size %dx%d", TmpWidth, TmpHeight);
+            NewImage = egScaleImage(Image, TmpWidth, TmpHeight);
+        } else {
+            LOG(4, LOG_LINE_NORMAL, L"Fit scaling, no need to scale");
+            NewImage = egCopyImage(Image);
+        }
+    } else {
+        // example 1920 x 1080 -> 1920 x 1200
+        if (Image->Width != NewWidth) {
+            UINTN TmpWidth = NewWidth;
+            UINTN TmpHeight = (NewWidth * 1000) / OrigRatio;
+
+            LOG(4, LOG_LINE_NORMAL, L"Fit scaling need size %dx%d", TmpWidth, TmpHeight);
+            NewImage = egScaleImage(Image, TmpWidth, TmpHeight);
+        } else {
+            LOG(4, LOG_LINE_NORMAL, L"Fit scaling, no need to scale");
+            NewImage = egCopyImage(Image);
+        }
+    }
+
+    LOG(4, LOG_LINE_NORMAL, L"Fit scaling of image complete");
+    return NewImage;
+} // EG_IMAGE * egScaleFitImage()
+
+// Returns image to scale, cropped retaining aspect
+EG_IMAGE * egScaleAspectImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeight) {
+    EG_IMAGE *NewImage;
+    UINTN OrigRatio = (Image->Width * 1000) / Image->Height;
+    UINTN NewRatio = (NewWidth * 1000) / NewHeight;
+
+    LOG(4, LOG_LINE_NORMAL, L"Aspect scaling image from %dx%d to %dx%d", Image->Width, Image->Height, NewWidth, NewHeight);
+
+    if (OrigRatio == NewRatio) {
+        NewImage = egScaleImage(Image, NewWidth, NewHeight);
+    } else if (OrigRatio < NewRatio) {
+        // example 1920 x 1200 -> 2560 x 1440
+        UINTN TmpWidth = NewWidth;
+        UINTN TmpHeight = (NewWidth * 1000) / OrigRatio;
+
+        LOG(4, LOG_LINE_NORMAL, L"Aspect scaling need size %dx%d", TmpWidth, TmpHeight);
+
+        if (Image->Width != NewWidth) {
+            EG_IMAGE *TmpImage = egScaleImage(Image, TmpWidth, TmpHeight);
+            if (!TmpImage)
+                return NULL;
+            LOG(4, LOG_LINE_NORMAL, L"Cropping image from %dx%d %dx%d to %dx%d",
+                                             0, (TmpHeight - NewHeight) / 2,
+                                             TmpImage->Width, TmpImage->Height, NewWidth, NewHeight);
+            NewImage = egCropImage(TmpImage, 0, (TmpHeight - NewHeight) / 2, NewWidth, NewHeight);
+            egFreeImage(Image);
+            if (!NewImage)
+                return NULL;
+        } else {
+            LOG(4, LOG_LINE_NORMAL, L"Cropping image from %dx%d %dx%d to %dx%d",
+                                             0, (TmpHeight - NewHeight) / 2,
+                                             Image->Width, Image->Height, NewWidth, NewHeight);
+            NewImage = egCropImage(Image, 0, (TmpHeight - NewHeight) / 2, NewWidth, NewHeight);
+        }
+    } else {
+        // example 1920 x 1080 -> 1920 x 1200
+        UINTN TmpWidth = (NewHeight * OrigRatio) / 1000;
+        UINTN TmpHeight = NewHeight;
+
+        LOG(4, LOG_LINE_NORMAL, L"Aspect scaling need size %dx%d", TmpWidth, TmpHeight);
+
+        if (Image->Height != NewHeight) {
+            EG_IMAGE *TmpImage = egScaleImage(Image, TmpWidth, TmpHeight);
+            if (!TmpImage)
+                return NULL;
+            LOG(4, LOG_LINE_NORMAL, L"Cropping image from %dx%d %dx%d to %dx%d",
+                                             (TmpWidth - NewWidth) / 2, 0,
+                                             TmpImage->Width, TmpImage->Height, NewWidth, NewHeight);
+            NewImage = egCropImage(TmpImage, (TmpWidth - NewWidth) / 2, 0, NewWidth, NewHeight);
+            egFreeImage(Image);
+            if (!NewImage)
+                return NULL;
+        } else {
+            LOG(4, LOG_LINE_NORMAL, L"Cropping image from %dx%d %dx%d to %dx%d",
+                                             (TmpWidth - NewWidth) / 2, 0,
+                                             Image->Width, Image->Height, NewWidth, NewHeight);
+            NewImage = egCropImage(Image, (TmpWidth - NewWidth) / 2, 0, NewWidth, NewHeight);
+        }
+    }
+
+    LOG(4, LOG_LINE_NORMAL, L"Aspect scaling of image complete");
+    return NewImage;
+} // EG_IMAGE * egScaleAspectImage()
 
 VOID egFreeImage(IN EG_IMAGE *Image)
 {

@@ -100,11 +100,15 @@ VOID egSetGraphicsModeEnabled(IN BOOLEAN Enable);
 //  is running in text mode. egHasGraphicsMode() only determines
 //  if libeg can draw to the screen in graphics mode.
 
+EFI_STATUS egColorFromText(OUT EG_PIXEL *Color, IN CONST CHAR16 *Value);
+
 EG_IMAGE * egCreateImage(IN UINTN Width, IN UINTN Height, IN BOOLEAN HasAlpha);
 EG_IMAGE * egCreateFilledImage(IN UINTN Width, IN UINTN Height, IN BOOLEAN HasAlpha, IN EG_PIXEL *Color);
 EG_IMAGE * egCopyImage(IN EG_IMAGE *Image);
 EG_IMAGE * egCropImage(IN EG_IMAGE *Image, IN UINTN StartX, IN UINTN StartY, IN UINTN Width, IN UINTN Height);
 EG_IMAGE * egScaleImage(EG_IMAGE *Image, UINTN NewWidth, UINTN NewHeight);
+EG_IMAGE * egScaleFitImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeight);
+EG_IMAGE * egScaleAspectImage (IN EG_IMAGE *Image, IN UINTN NewWidth, IN UINTN NewHeight);
 VOID egFreeImage(IN EG_IMAGE *Image);
 
 EG_IMAGE * egLoadImage(IN EFI_FILE_PROTOCOL *BaseDir, IN CHAR16 *FileName, IN BOOLEAN WantAlpha);
@@ -147,6 +151,8 @@ VOID egDrawImageArea(IN EG_IMAGE *Image,
 VOID egDisplayMessage(IN CHAR16 *Text, EG_PIXEL *BGColor, UINTN PositionCode);
 EG_IMAGE * egCopyScreen(VOID);
 EG_IMAGE * egCopyScreenArea(UINTN XPos, UINTN YPos, UINTN Width, UINTN Height);
+EFI_STATUS egScreenSave(VOID);
+EFI_STATUS egScreenRestore(VOID);
 VOID egScreenShot(VOID);
 BOOLEAN egSetTextMode(UINT32 RequestedMode);
 

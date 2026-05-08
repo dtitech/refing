@@ -84,10 +84,12 @@ static EFI_UGA_DRAW_PROTOCOL *UgaDraw = NULL;
 static EFI_GUID GraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 static EFI_GRAPHICS_OUTPUT_PROTOCOL *GraphicsOutput = NULL;
 
-static BOOLEAN egHasGraphics  = FALSE;
-static UINTN   egScreenWidth  = 800;
-static UINTN   egScreenHeight = 600;
+static BOOLEAN      egHasGraphics  = FALSE;
+static UINTN        egScreenWidth  = 800;
+static UINTN        egScreenHeight = 600;
 
+static EG_IMAGE    *egSavedScreen = NULL;
+static UINT32       egSavedMode   = 0;
 
 //
 // Screen handling
@@ -620,6 +622,90 @@ EG_IMAGE * egCopyScreenArea(UINTN XPos, UINTN YPos, UINTN Width, UINTN Height) {
     }
     return Image;
 } // EG_IMAGE * egCopyScreenArea()
+
+//
+// Save and Restore
+//
+
+EFI_STATUS egScreenSave(VOID)
+{
+    if (!egHasGraphics)
+        return EFI_UNSUPPORTED;
+
+    LOG(2, LOG_LINE_NORMAL, L"Saving screen");
+
+    egFreeImage(egSavedScreen);
+    egSavedScreen = egCopyScreen();
+    if (!egSavedScreen) {
+        LOG(1, LOG_LINE_NORMAL, L"Error saving screen");
+        return EFI_OUT_OF_RESOURCES;
+    } else {
+        LOG(4, LOG_LINE_NORMAL, L"Screen saved");
+    }
+
+    egSavedMode = GraphicsOutput ? GraphicsOutput->Mode->Mode : 0;
+
+    return EFI_SUCCESS;
+}
+
+EFI_STATUS egScreenRestore(VOID)
+{
+    EFI_STATUS   Status;
+    UINT32       UGAWidth, UGAHeight, UGADepth, UGARefreshRate;
+
+    if (!egHasGraphics)
+        return EFI_UNSUPPORTED;
+
+    if (!egSavedScreen)
+        return EFI_NOT_FOUND;
+
+
+    if (GraphicsOutput != NULL) {
+        LOG(2, LOG_LINE_NORMAL, L"Restoring screen from Save");
+
+        if (GraphicsOutput->Mode->Mode != egSavedMode) {
+            LOG(2, LOG_LINE_NORMAL, L"Setting GOP mode to %d", egSavedMode);
+            Status = refit_call2_wrapper(GraphicsOutput->SetMode, GraphicsOutput, egSavedMode);
+
+            if (Status == EFI_SUCCESS) {
+                egScreenWidth = GraphicsOutput->Mode->Info->HorizontalResolution;
+                egScreenHeight = GraphicsOutput->Mode->Info->VerticalResolution;
+            }
+        }
+
+        refit_call10_wrapper(GraphicsOutput->Blt, GraphicsOutput,
+                            (EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)egSavedScreen->PixelData,
+                            EfiBltBufferToVideo, 0, 0, 0, 0, egSavedScreen->Width,
+                            egSavedScreen->Height, 0);
+
+    } else if ((UgaDraw != NULL) && (egSavedScreen->Height > 0)) { // UGA mode (EFI 1.x)
+        LOG(2, LOG_LINE_NORMAL, L"Restoring screen from Save");
+
+        // Try to use current color depth & refresh rate for new mode. Maybe not the best choice
+        // in all cases, but I don't know how to probe for alternatives....
+        Status = refit_call5_wrapper(UgaDraw->GetMode, UgaDraw, &UGAWidth,
+                                     &UGAHeight, &UGADepth, &UGARefreshRate);
+        if ((egSavedScreen->Width != UGAWidth) || (egSavedScreen->Height != UGAHeight)) {
+            LOG(2, LOG_LINE_NORMAL, L"Setting UGA Draw mode to %d x %d", egSavedScreen->Width, egSavedScreen->Height);
+            Status = refit_call5_wrapper(UgaDraw->SetMode, UgaDraw, egSavedScreen->Width,
+                                         egSavedScreen->Height, UGADepth, UGARefreshRate);
+
+            if (Status == EFI_SUCCESS) {
+                egScreenWidth = egSavedScreen->Width;
+                egScreenHeight = egSavedScreen->Height;
+            }
+        }
+
+        refit_call10_wrapper(UgaDraw->Blt, UgaDraw, (EFI_UGA_PIXEL *)egSavedScreen->PixelData,
+                             EfiUgaBltBufferToVideo, 0, 0, 0, 0,
+                             egSavedScreen->Width, egSavedScreen->Height, 0);
+    } else
+        return EFI_UNSUPPORTED;
+
+    LOG(4, LOG_LINE_NORMAL, L"Screen restored from Save");
+
+    return EFI_SUCCESS;
+}
 
 //
 // Make a screenshot
