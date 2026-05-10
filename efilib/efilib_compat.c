@@ -68,8 +68,8 @@ void *memcpy(void * dest, const void * src, size_t n) {
     while (n > 0)
     {
         *(UINT8 *)d = *(UINT8 *)s;
-        d--;
-        s--;
+        d++;
+        s++;
         n--;
     }
     return dest;
