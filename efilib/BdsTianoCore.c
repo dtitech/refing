@@ -12,12 +12,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#ifdef __MAKEWITH_TIANO
-#include "../include/tiano_includes.h"
-#else
 #include "BdsHelper.h"
 #include "gnuefi-helper.h"
-#endif
 #include "../include/refit_call_wrapper.h"
 #include "../refind/lib.h"
 
@@ -98,23 +94,6 @@ BdsLibConnectDevicePath (
       Status              = refit_call3_wrapper(gBS->LocateDevicePath, &EfiDevicePathProtocolGuid, &RemainingDevicePath, &Handle);
 
       if (!EFI_ERROR (Status)) {
-#ifdef __MAKEWITH_TIANO
-         if (Handle == PreviousHandle) {
-          //
-          // If no forward progress is made try invoking the Dispatcher.
-          // A new FV may have been added to the system an new drivers
-          // may now be found.
-          // Status == EFI_SUCCESS means a driver was dispatched
-          // Status == EFI_NOT_FOUND means no new drivers were dispatched
-          //
-          if (gDS) {
-              Status = gDS->Dispatch ();
-          } else {
-              Status = EFI_NOT_FOUND;
-          }
-        }
-#endif
-
         if (!EFI_ERROR (Status)) {
           PreviousHandle = Handle;
           //

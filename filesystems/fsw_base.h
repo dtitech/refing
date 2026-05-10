@@ -40,10 +40,6 @@
 #ifndef _FSW_BASE_H_
 #define _FSW_BASE_H_
 
-#ifdef __MAKEWITH_TIANO
-#include "fsw_efi_base.h"
-#endif
-
 #ifdef HOST_POSIX
 #include "test/fsw_posix_base.h"
 #endif

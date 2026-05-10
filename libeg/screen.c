@@ -67,11 +67,7 @@
 #include <efiUgaDraw.h>
 #include <efiConsoleControl.h>
 
-#ifndef __MAKEWITH_GNUEFI
-#define LibLocateProtocol EfiLibLocateProtocol
-#else
 #include <efilib.h>
-#endif
 
 // Console defines and variables
 

@@ -41,9 +41,7 @@
 #define _FSW_CORE_H_
 
 #include "fsw_base.h"
-#ifdef __MAKEWITH_GNUEFI
 #include "fsw_efi_base.h"
-#endif
 
 /** Maximum size for a path, specifically symlink target paths. */
 #define FSW_PATH_MAX (4096)

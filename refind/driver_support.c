@@ -98,7 +98,6 @@ EFI_GUID gMyEfiDiskIoProtocolGuid = { 0xCE345171, 0xBA0B, 0x11D2, { 0x8E, 0x4F, 
 EFI_GUID gMyEfiBlockIoProtocolGuid = { 0x964E5B21, 0x6459, 0x11D2, { 0x8E, 0x39, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B }};
 EFI_GUID gMyEfiSimpleFileSystemProtocolGuid = { 0x964E5B22, 0x6459, 0x11D2, { 0x8E, 0x39, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B }};
 
-#ifdef __MAKEWITH_GNUEFI
 #define CompareGuid MyCompareGuid
 struct MY_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL;
 struct MY_EFI_FILE_PROTOCOL;
@@ -137,11 +136,6 @@ typedef struct _MY_EFI_BLOCK_IO_PROTOCOL {
   EFI_BLOCK_WRITE    WriteBlocks;
   EFI_BLOCK_FLUSH    FlushBlocks;
 } MY_EFI_BLOCK_IO_PROTOCOL;
-#else /* Make with Tianocore */
-#define MY_EFI_SIMPLE_FILE_SYSTEM_PROTOCOL EFI_SIMPLE_FILE_SYSTEM_PROTOCOL
-#define MY_EFI_FILE_PROTOCOL EFI_FILE_PROTOCOL
-#define MY_EFI_BLOCK_IO_PROTOCOL EFI_BLOCK_IO_PROTOCOL
-#endif
 
 /* LibScanHandleDatabase() is used by rEFInd's driver-loading code (inherited
  * from rEFIt), but has not been implemented in GNU-EFI and seems to have been
@@ -356,7 +350,6 @@ Error:
   return Status;
 } /* EFI_STATUS LibScanHandleDatabase() */
 
-#ifdef __MAKEWITH_GNUEFI
 /* Modified from EDK2 function of a similar name; original copyright Intel &
  * BSD-licensed; modifications by Roderick Smith are GPLv3. */
 EFI_STATUS ConnectAllDriversToAllControllers(VOID)
@@ -427,12 +420,6 @@ Done:
     MyFreePool (AllHandleBuffer);
     return Status;
 } /* EFI_STATUS ConnectAllDriversToAllControllers() */
-#else
-EFI_STATUS ConnectAllDriversToAllControllers(VOID) {
-    BdsLibConnectAllDriversToAllControllers();
-    return 0;
-}
-#endif
 
 /*
  * ConnectFilesystemDriver() is modified from DisconnectInvalidDiskIoChildDrivers()
@@ -609,7 +596,6 @@ BOOLEAN LoadDrivers(VOID) {
     return (NumFound > 0);
 } /* BOOLEAN LoadDrivers() */
 
-#ifdef __MAKEWITH_GNUEFI
 /* When using GNU-EFI, revert to the old CompareGuid() and RtCompareGuid()
    functions, because GNU-EFI 4.x changed their definitions in a way that broke
    rEFInd. Modified from GNU-EFI 3.x functions in lib/guid.c and
@@ -642,4 +628,3 @@ MyRtCompareGuid (
 
     return r;
 }
-#endif

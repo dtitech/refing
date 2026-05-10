@@ -69,18 +69,7 @@
 #include "log.h"
 #include "mystrings.h"
 
-#ifdef __MAKEWITH_GNUEFI
 #define EfiReallocatePool MyReallocatePool
-#else
-#define LibLocateHandle gBS->LocateHandleBuffer
-#define DevicePathProtocol gEfiDevicePathProtocolGuid
-#define BlockIoProtocol gEfiBlockIoProtocolGuid
-#define LibFileSystemInfo EfiLibFileSystemInfo
-#define LibOpenRoot EfiLibOpenRoot
-EFI_DEVICE_PATH EndDevicePath[] = {
-   {END_DEVICE_PATH_TYPE, END_ENTIRE_DEVICE_PATH_SUBTYPE, {END_DEVICE_PATH_LENGTH, 0}}
-};
-#endif
 
 // "Magic" signatures for various filesystems
 #define FAT_MAGIC                        0xAA55
@@ -1524,46 +1513,6 @@ VOID DirIterOpen(IN EFI_FILE_PROTOCOL *BaseDir, IN CHAR16 *RelativePath OPTIONAL
     DirIter->LastFileInfo = NULL;
 }
 
-#ifndef __MAKEWITH_GNUEFI
-EFI_UNICODE_COLLATION_PROTOCOL *mUnicodeCollation = NULL;
-
-static EFI_STATUS
-InitializeUnicodeCollationProtocol (VOID)
-{
-    EFI_STATUS  Status;
-
-    if (mUnicodeCollation != NULL) {
-        return EFI_SUCCESS;
-    }
-
-    //
-    // BUGBUG: Proper impelmentation is to locate all Unicode Collation Protocol
-    // instances first and then select one which support English language.
-    // Current implementation just pick the first instance.
-    //
-    Status = gBS->LocateProtocol(&gEfiUnicodeCollation2ProtocolGuid,
-                                 NULL, (VOID **) &mUnicodeCollation);
-    if (EFI_ERROR(Status)) {
-        Status = gBS->LocateProtocol(&gEfiUnicodeCollationProtocolGuid,
-                                     NULL, (VOID **) &mUnicodeCollation);
-
-    }
-    return Status;
-}
-
-static BOOLEAN
-MetaiMatch (IN CHAR16 *String, IN CHAR16 *Pattern)
-{
-    if (!mUnicodeCollation) {
-        InitializeUnicodeCollationProtocol();
-    }
-    if (mUnicodeCollation)
-        return mUnicodeCollation->MetaiMatch (mUnicodeCollation, String, Pattern);
-    return FALSE; // Shouldn't happen
-}
-
-#endif
-
 BOOLEAN DirIterNext(IN OUT REFIT_DIR_ITER *DirIter, IN UINTN FilterMode, IN CHAR16 *FilePattern OPTIONAL,
                     OUT EFI_FILE_INFO **DirEntry)
 {
@@ -1975,7 +1924,6 @@ VOID EraseUint32List(UINT32_LIST **TheList) {
     } // while
 } // EraseUin32List()
 
-#ifdef __MAKEWITH_GNUEFI
 /* When using GNU-EFI, revert to the old ReallocatePool() function, because
    GNU-EFI 4.x changed its definition in a way that broke rEFInd.
    Modified from efilib/BmLib.c (matches GNU-EFI 3.x); original copyright Intel
@@ -2004,4 +1952,3 @@ MyReallocatePool (
 
   return NewPool;
 }
-#endif

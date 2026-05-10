@@ -45,14 +45,10 @@
 #ifndef __LIB_H_
 #define __LIB_H_
 
-#ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
 VOID * MyReallocatePool(IN VOID *OldPool, IN UINTN OldSize, IN UINTN NewSize);
 #define EFI_DEVICE_PATH_PROTOCOL EFI_DEVICE_PATH
-#else
-#include "../include/tiano_includes.h"
-#endif
 
 #include "global.h"
 
@@ -134,11 +130,7 @@ VOID MyFreePool(IN OUT VOID *Pointer);
 
 // When using GNU-EFI, call the EFI's built-in gBS->CopyMem() function, because
 // GNU-EFI 3.0.18 changed its CopyMem() definition in a way that broke rEFInd.
-#ifdef __MAKEWITH_GNUEFI
 #define MyCopyMem(Dest, Src, len) refit_call3_wrapper(gBS->CopyMem, Dest, Src, len)
-#else
-#define MyCopyMem(Dest, Src, len) CopyMem(Dest, Src, len)
-#endif
 
 BOOLEAN EjectMedia(VOID);
 

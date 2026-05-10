@@ -45,12 +45,8 @@
 #ifndef __GLOBAL_H_
 #define __GLOBAL_H_
 
-#ifdef __MAKEWITH_GNUEFI
 #include <efi.h>
 #include <efilib.h>
-#else
-#include "../include/tiano_includes.h"
-#endif
 #include "../efilib/GenericBdsLib.h"
 
 #include "../libeg/libeg.h"
@@ -102,7 +98,6 @@
 #define DISCOVERY_TYPE_AUTO     1
 #define DISCOVERY_TYPE_MANUAL   2
 
-#ifdef __MAKEWITH_GNUEFI
 //
 // define BBS Device Types
 //
@@ -114,7 +109,6 @@
 #define BBS_EMBED_NETWORK 0x06
 #define BBS_BEV_DEVICE    0x80
 #define BBS_UNKNOWN       0xff
-#endif
 
 // BIOS Boot Specification (BBS) device types, as returned in DevicePath->Type field
 #define DEVICE_TYPE_HW         0x01

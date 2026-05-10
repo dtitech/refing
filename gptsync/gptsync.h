@@ -55,12 +55,8 @@
 
 #ifdef CONFIG_EFI
 
-#ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
-#else
-#include "../include/tiano_includes.h"
-#endif
 
 #define copy_guid(destguid, srcguid) (refit_call3_wrapper(gBS->CopyMem, destguid, srcguid, 16))
 #define guids_are_equal(guid1, guid2) (CompareMem(guid1, guid2, 16) == 0)

@@ -36,10 +36,6 @@
 
 #include "gptsync.h"
 #include "../include/refit_call_wrapper.h"
-#ifdef __MAKEWITH_TIANO
-//#include "tiano_includes.h"
-#include "AutoGen.h"
-#endif
 
 // variables
 
@@ -144,28 +140,6 @@ UINTN input_boolean(CHARN *prompt, BOOLEAN *bool_out)
     ReadAllKeyStrokes();
     return 0;
 }
-
-#ifdef __MAKEWITH_TIANO
-
-// EFI_GUID gEfiDxeServicesTableGuid = { 0x05AD34BA, 0x6F02, 0x4214, { 0x95, 0x2E, 0x4D, 0xA0, 0x39, 0x8E, 0x2B, 0xB9 }};
-
-// Minimal initialization function
-static VOID InitializeLib(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable) {
-   gST            = SystemTable;
-   //    gImageHandle   = ImageHandle;
-   gBS            = SystemTable->BootServices;
-   //    gRS            = SystemTable->RuntimeServices;
-   gRT = SystemTable->RuntimeServices; // Some BDS functions need gRT to be set
-
-//   InitializeConsoleSim();
-}
-
-// EFI_GUID gEfiBlockIoProtocolGuid = { 0x964E5B21, 0x6459, 0x11D2, { 0x8E, 0x39, 0x00, 0xA0, 0xC9, 0x69, 0x72, 0x3B }};
-
-#define LibLocateHandle gBS->LocateHandleBuffer
-#define BlockIoProtocol gEfiBlockIoProtocolGuid
-
-#endif
 
 // Performs a case-insensitive string comparison. This function is necesary
 // because some EFIs have buggy StriCmp() functions that actually perform

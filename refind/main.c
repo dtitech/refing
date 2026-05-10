@@ -77,10 +77,6 @@
 #include "../libeg/efiConsoleControl.h"
 #include "../libeg/efiUgaDraw.h"
 
-#ifndef __MAKEWITH_GNUEFI
-#define LibLocateProtocol EfiLibLocateProtocol
-#endif
-
 //
 // Some built-in menu definitions....
 
@@ -215,11 +211,7 @@ VOID AboutrEFInd(VOID)
         AddMenuInfoLine(&AboutMenu, PoolPrint(L" Screen Output: %s", TempStr));
         MyFreePool(TempStr);
         AddMenuInfoLine(&AboutMenu, L"");
-#if defined(__MAKEWITH_GNUEFI)
         AddMenuInfoLine(&AboutMenu, L"Built with GNU-EFI");
-#else
-        AddMenuInfoLine(&AboutMenu, L"Built with TianoCore EDK2");
-#endif
         AddMenuInfoLine(&AboutMenu, L"");
         AddMenuInfoLine(&AboutMenu, L"For more information, see the rEFInd Web site:");
         AddMenuInfoLine(&AboutMenu, L"http://www.rodsbooks.com/refind/");
@@ -256,27 +248,6 @@ VOID RescanAll(BOOLEAN DisplayMessage, BOOLEAN Reconnect) {
     ScanForBootloaders(DisplayMessage);
     ScanForTools();
 } // VOID RescanAll()
-
-#ifdef __MAKEWITH_TIANO
-
-// Minimal initialization function
-static VOID InitializeLib(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable) {
-    EFI_STATUS Status;
-
-    gST            = SystemTable;
-    //    gImageHandle   = ImageHandle;
-    gBS            = SystemTable->BootServices;
-    //    gRS            = SystemTable->RuntimeServices;
-    gRT = SystemTable->RuntimeServices; // Some BDS functions need gRT to be set
-    Status = EfiGetSystemConfigurationTable (&gEfiDxeServicesTableGuid, (VOID **) &gDS);
-    if (EFI_ERROR(Status)) {
-        // Be sure that gDS isn't pointing to some random place; check it
-        // before each use....
-        gDS = 0;
-    }
-}
-
-#endif
 
 // Set up our own Secure Boot extensions....
 // Returns TRUE on success, FALSE otherwise
@@ -389,11 +360,7 @@ VOID LogBasicInfo(VOID) {
     EFI_GUID   GraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 
     LOG(3, LOG_LINE_SEPARATOR, L"System information");
-#if defined(__MAKEWITH_GNUEFI)
     LOG(3, LOG_LINE_NORMAL, L"rEFInd %s built with GNU-EFI", REFIND_VERSION);
-#else
-    LOG(3, LOG_LINE_NORMAL, L"rEFInd %s built with TianoCore EDK2", REFIND_VERSION);
-#endif
     TempStr = GuidAsString(&(SelfVolume->PartGuid));
     LOG(3, LOG_LINE_NORMAL, L"rEFInd boot partition GUID: %s", TempStr);
     MyFreePool(TempStr);
@@ -459,13 +426,6 @@ VOID LogBasicInfo(VOID) {
     Status = LibLocateProtocol(&GraphicsOutputProtocolGuid, (VOID **) &TempStr);
     LOG(3, LOG_LINE_NORMAL, L"System does%s support GOP graphics mode",
         EFI_ERROR(Status) ? L" not" : L"");
-
-#ifdef __MAKEWITH_TIANO
-    if (gDS == 0) {
-        LOG(2, LOG_LINE_NORMAL, L"WARNING: EfiGetSystemConfigurationTable() returned error status %lu!", Status);
-        LOG(2, LOG_LINE_NORMAL, L"         Some functionality will be impaired!");
-    }
-#endif
 } // VOID LogBasicInfo()
 
 //

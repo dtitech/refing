@@ -69,10 +69,8 @@
 //
 // constants
 
-#ifdef __MAKEWITH_GNUEFI
 #ifndef EFI_SECURITY_VIOLATION
 #define EFI_SECURITY_VIOLATION    EFIERR (26)
-#endif
 #endif
 
 #if defined (EFIX64)

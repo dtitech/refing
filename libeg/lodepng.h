@@ -41,12 +41,8 @@ int MyStrlen(const char *InString);
 #include <stdlib.h>
 #include "../include/refit_call_wrapper.h"
 #define abs(x) (((x) < 0) ? -(x) : (x))
-#ifdef __MAKEWITH_GNUEFI
 #include <efi.h>
 #include <efilib.h>
-#else
-#include "../include/tiano_includes.h"
-#endif
 VOID *MyMemSet(VOID *s, int c, size_t n);
 VOID *MyMemCpy(void *__restrict __dest, const void *__restrict __src, size_t __n);
 #define memset(s, c, n) MyMemSet(s, c, n)

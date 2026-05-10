@@ -1,30 +1,47 @@
-# meta-Makefile for gptsync program; controls use of EFI build using
-# GNU-EFI vs. TianoCore EDK2 or build for Unix/Linux.
 #
-# Most of the functionality is in Make.tiano, Make.gnuefi, and
-# Make.unix; this Makefile just dispatches based on options
-# passed to it....
+# gptsync/Makefile
+# Build control file for the gptsync tool
+#
 
-TEXTFILES = gptsync.txt
+#LOCAL_GNUEFI_CFLAGS  = -I. -I../include
+LOCAL_LIBS      = 
 
-TARGET = tiano
+TEXTFILES       = gptsync.txt
 
-all:	$(TARGET)
+OBJS            = gptsync.o lib.o os_efi.o
 
-gnuefi:
-	+make -f Make.gnuefi
+include ../Make.common
 
-tiano:
-	+make -f Make.tiano
+ifeq ($(ARCH),ia32)
+  TARGET = gptsync_ia32.efi
+endif
 
-# TODO: Fix Make.unix; currently broken....
-unix:
-	+make -f Make.unix
+ifeq ($(ARCH),x86_64)
+  TARGET = gptsync_x64.efi
+endif
+
+ifeq ($(ARCH),aarch64)
+  TARGET = gptsync_aa64.efi
+endif
+
+all: $(TARGET)
+
+SHLIB_TARGET = $(subst .efi,.so,$(TARGET))
+
+$(SHLIB_TARGET): $(OBJS)
+	$(LD) $(GNUEFI_LDFLAGS) $(SUBSYSTEM_LDFLAG) $(OBJS) -o $@ $(LOCAL_LIBS) $(GNUEFI_LIBS)
+
+$(TARGET): $(SHLIB_TARGET)
+	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym \
+	           -j .rel -j .rela -j .rel.* -j .rela.* -j .rel* -j .rela* \
+		   -j .reloc --strip-unneeded  $(FORMAT) $< $@
+ifneq ($(OMIT_SBAT), 1)
+	$(OBJCOPY) --add-section .sbat=../$(REFIND_SBAT_CSV) \
+		   --adjust-section-vma .sbat+10000000 $@
+endif
+	chmod a-x $(TARGET)
 
 # utility rules
 
 clean:
 	rm -f *~ *.bak *.o *.obj *.so *.efi *.dll err.txt gptsync_*.txt gptsync showpart $(TEXTFILES)
-
-
-# DO NOT DELETE

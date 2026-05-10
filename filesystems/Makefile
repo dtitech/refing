@@ -1,7 +1,7 @@
 # meta-Makefile for rEFInd filesystem drivers
 #
-# Most of the functionality is in Make.tiano; this Makefile merely
-# deletes critical temporary files and calls Make.tiano with the
+# Most of the functionality is in Make.driver; this Makefile merely
+# deletes critical temporary files and calls Make.driver with the
 # name of the driver to be built. This is done because of a dependency
 # in the fsw_efi.c file on the filesystem type; this file must be
 # recompiled for each new filesystem built.
@@ -14,74 +14,39 @@
 INSTALL_DIR = /boot/efi/EFI/refind/drivers
 
 FILESYSTEMS = ext2 ext4 reiserfs iso9660 hfs btrfs
-FILESYSTEMS_GNUEFI = ext2_gnuefi ext4_gnuefi reiserfs_gnuefi iso9660_gnuefi hfs_gnuefi btrfs_gnuefi
 TEXTFILES = $(FILESYSTEMS:=*.txt)
 
-# Build the drivers with TianoCore EDK2.....
+# Build the drivers
 
 all:	$(FILESYSTEMS)
 
 ext2:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=ext2 -f Make.tiano
+	rm -f fsw_efi.o
+	+make DRIVERNAME=ext2 -f Make.driver
 
 ext4:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=ext4 -f Make.tiano
+	rm -f fsw_efi.o
+	+make DRIVERNAME=ext4 -f Make.driver
 
 reiserfs:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=reiserfs -f Make.tiano
+	rm -f fsw_efi.o
+	+make DRIVERNAME=reiserfs -f Make.driver
 
 iso9660:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=iso9660 -f Make.tiano
+	rm -f fsw_efi.o
+	+make DRIVERNAME=iso9660 -f Make.driver
 
 hfs:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=hfs -f Make.tiano
+	rm -f fsw_efi.o
+	+make DRIVERNAME=hfs -f Make.driver
 
 btrfs:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=btrfs -f Make.tiano
+	rm -f fsw_efi.o
+	+make DRIVERNAME=btrfs -f Make.driver
 
 ntfs:
-	rm -f fsw_efi.obj
-	+make DRIVERNAME=ntfs -f Make.tiano
-
-# Build the drivers with GNU-EFI....
-
-gnuefi: $(FILESYSTEMS_GNUEFI)
-
-all_gnuefi:	$(FILESYSTEMS_GNUEFI)
-
-ext2_gnuefi:
 	rm -f fsw_efi.o
-	+make DRIVERNAME=ext2 -f Make.gnuefi
-
-ext4_gnuefi:
-	rm -f fsw_efi.o
-	+make DRIVERNAME=ext4 -f Make.gnuefi
-
-reiserfs_gnuefi:
-	rm -f fsw_efi.o
-	+make DRIVERNAME=reiserfs -f Make.gnuefi
-
-iso9660_gnuefi:
-	rm -f fsw_efi.o
-	+make DRIVERNAME=iso9660 -f Make.gnuefi
-
-hfs_gnuefi:
-	rm -f fsw_efi.o
-	+make DRIVERNAME=hfs -f Make.gnuefi
-
-btrfs_gnuefi:
-	rm -f fsw_efi.o
-	+make DRIVERNAME=btrfs -f Make.gnuefi
-
-ntfs_gnuefi:
-	rm -f fsw_efi.o
-	+make DRIVERNAME=ntfs -f Make.gnuefi
+	+make DRIVERNAME=ntfs -f Make.driver
 
 # Compiling filesystem drivers in parallel with GNU-EFI can cause build errors
 # and frozen systems on boot with drivers that do build OK, so disallow this....

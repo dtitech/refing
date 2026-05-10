@@ -18,13 +18,9 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-#ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
 #define EFI_DEVICE_PATH_PROTOCOL EFI_DEVICE_PATH
-#else
-#include "../include/tiano_includes.h"
-#endif
 
 #define LOG_LINE_NORMAL      1
 #define LOG_LINE_SEPARATOR   2

@@ -180,7 +180,7 @@ EFI_EVENT pdWaitEvent(UINTN Index) {
 // the first available device's state
 ////////////////////////////////////////////////////////////////////////////////
 EFI_STATUS pdUpdateState() {
-#if defined(EFI32) && defined(__MAKEWITH_GNUEFI)
+#if defined(EFI32)
     return EFI_NOT_READY;
 #else
     if(!PointerAvailable) {
@@ -199,13 +199,8 @@ EFI_STATUS pdUpdateState() {
         if(!EFI_ERROR(PointerStatus) && EFI_ERROR(Status)) {
             Status = EFI_SUCCESS;
 
-#ifdef EFI32
-            State.X = (UINTN)DivU64x64Remainder(APointerState.CurrentX * UGAWidth, APointerProtocol[Index]->Mode->AbsoluteMaxX, NULL);
-            State.Y = (UINTN)DivU64x64Remainder(APointerState.CurrentY * UGAHeight, APointerProtocol[Index]->Mode->AbsoluteMaxY, NULL);
-#else
             State.X = (APointerState.CurrentX * UGAWidth) / APointerProtocol[Index]->Mode->AbsoluteMaxX;
             State.Y = (APointerState.CurrentY * UGAHeight) / APointerProtocol[Index]->Mode->AbsoluteMaxY;
-#endif
             State.Holding = (APointerState.ActiveButtons & EFI_ABSP_TouchActive);
         }
     }
@@ -218,13 +213,8 @@ EFI_STATUS pdUpdateState() {
             INT32 TargetX = 0;
             INT32 TargetY = 0;
 
-#ifdef EFI32
-	    TargetX = State.X + (INTN)DivS64x64Remainder(SPointerState.RelativeMovementX * GlobalConfig.MouseSpeed, SPointerProtocol[Index]->Mode->ResolutionX, NULL);
-            TargetY = State.Y + (INTN)DivS64x64Remainder(SPointerState.RelativeMovementY * GlobalConfig.MouseSpeed, SPointerProtocol[Index]->Mode->ResolutionY, NULL);
-#else
             TargetX = State.X + SPointerState.RelativeMovementX * GlobalConfig.MouseSpeed / SPointerProtocol[Index]->Mode->ResolutionX;
             TargetY = State.Y + SPointerState.RelativeMovementY * GlobalConfig.MouseSpeed / SPointerProtocol[Index]->Mode->ResolutionY;
-#endif
 
             if(TargetX < 0) {
                 State.X = 0;

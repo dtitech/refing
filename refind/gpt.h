@@ -16,12 +16,8 @@
 
 #include "global.h"
 
-#ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
-#else
-#include "../include/tiano_includes.h"
-#endif
 
 #pragma pack(1)
 typedef struct {

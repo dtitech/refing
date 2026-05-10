@@ -384,13 +384,9 @@ BOOLEAN CheckFatalError(IN EFI_STATUS Status, IN CHAR16 *where)
     if (!EFI_ERROR(Status))
         return FALSE;
 
-#ifdef __MAKEWITH_GNUEFI
     CHAR16 ErrorName[64];
     StatusToString(ErrorName, Status);
     Temp = PoolPrint(L"Fatal Error: %s %s", ErrorName, where);
-#else
-    Temp = PoolPrint(L"Fatal Error: %s %s", Status, where);
-#endif
     refit_call2_wrapper(ST->ConOut->SetAttribute, ST->ConOut, ATTR_ERROR);
     PrintUglyText(Temp, NEXTLINE);
     refit_call2_wrapper(ST->ConOut->SetAttribute, ST->ConOut, ATTR_BASIC);
@@ -407,13 +403,9 @@ BOOLEAN CheckError(IN EFI_STATUS Status, IN CHAR16 *where)
     if (!EFI_ERROR(Status))
         return FALSE;
 
-#ifdef __MAKEWITH_GNUEFI
     CHAR16 ErrorName[64];
     StatusToString(ErrorName, Status);
     Temp = PoolPrint(L"Error: %s %s", ErrorName, where);
-#else
-    Temp = PoolPrint(L"Error: %r %s", Status, where);
-#endif
     refit_call2_wrapper(ST->ConOut->SetAttribute, ST->ConOut, ATTR_ERROR);
     PrintUglyText(Temp, NEXTLINE);
     refit_call2_wrapper(ST->ConOut->SetAttribute, ST->ConOut, ATTR_BASIC);

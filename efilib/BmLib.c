@@ -12,11 +12,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 **/
 
-#ifdef __MAKEWITH_TIANO
-#include "Platform.h"
-#else
 #include "gnuefi-helper.h"
-#endif
 #include "../include/refit_call_wrapper.h"
 
 /**

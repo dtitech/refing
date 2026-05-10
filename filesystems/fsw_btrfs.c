@@ -855,11 +855,7 @@ static struct fsw_btrfs_recover_cache *get_recover_cache(struct fsw_btrfs_volume
 	if(fsw_alloc_zero(sizeof(struct fsw_btrfs_recover_cache) * RECOVER_CACHE_SIZE, (void **)&vol->rcache) != FSW_SUCCESS)
 	    return NULL;
     }
-#ifdef __MAKEWITH_TIANO
-    unsigned hash;
-#else
     UINTN hash;
-#endif
     DivU64x32Remainder(((device_id >> 32) | device_id | (offset >> 32) | offset), RECOVER_CACHE_SIZE, &hash);
     struct fsw_btrfs_recover_cache *rc = &vol->rcache[hash];
     if(rc->buffer == NULL) {
@@ -935,13 +931,7 @@ static fsw_status_t fsw_btrfs_read_logical (struct fsw_btrfs_volume *vol, uint64
 
 chunk_found:
         {
-#ifdef __MAKEWITH_GNUEFI
 #define UINTREM UINTN
-#else
-#undef DivU64x32
-#define DivU64x32 DivU64x32Remainder
-#define UINTREM UINT32
-#endif
             UINTREM stripen;
             UINTREM stripeq;
             UINTREM stripe_offset;

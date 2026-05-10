@@ -147,8 +147,7 @@ Copyright: 2006 Christoph Pfisterer
            2012 Roderick W. Smith
 License: BSD-3-clause
 
-Files: include/tiano_includes.h
-       include/version.h
+Files: include/version.h
 Copyright: 2012 Roderick W. Smith
 License: GPL-3+
 

@@ -35,11 +35,11 @@ firmware's author and warns if you're trying to run the program on anything
 but Apple firmware, since in most such cases creating a hybrid MBR is *NOT*
 desirable.
 
-Although the Makefile supports building for both EFI (via the "gnuefi" and
-"tiano" targets) and Unix/Linux (via the "unix" target), the Unix build is
-currently broken; it returns a bogus error about an unknown GPT spec
-revision. If you want to create a hybrid MBR in an OS, you're better off
-using gdisk (http://www.rodsbooks.com/gdisk/), which provides much better
-control of the hybrid MBR creation process. gdisk may also be preferable if
-you have an unusual partition layout, many partitions, or specific
-requirements that you understand well.
+Although the Makefile supports building for both EFI (via the "gnuefi"
+target) and Unix/Linux (via the "unix" target), the Unix build is currently
+broken; it returns a bogus error about an unknown GPT spec revision.
+If you want to create a hybrid MBR in an OS, you're better off using gdisk
+(http://www.rodsbooks.com/gdisk/), which provides much better control of the
+hybrid MBR creation process. gdisk may also be preferable if you have an
+unusual partition layout, many partitions, or specific requirements that you
+understand well.

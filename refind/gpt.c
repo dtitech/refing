@@ -26,10 +26,6 @@
 #include "crc32.h"
 #include "../include/refit_call_wrapper.h"
 
-#ifdef __MAKEWITH_TIANO
-#define BlockIoProtocol gEfiBlockIoProtocolGuid
-#endif
-
 GPT_DATA *gPartitions = NULL;
 
 // Allocate data for the main GPT_DATA structure, as well as the ProtectiveMBR

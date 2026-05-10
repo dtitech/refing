@@ -21,15 +21,10 @@
  */
 
 #include "fsw_efi.h"
-#ifdef __MAKEWITH_GNUEFI
 #include "edk2/DriverBinding.h"
 #include "edk2/ComponentName.h"
 extern EFI_GUID gMyEfiDiskIoProtocolGuid;
 extern EFI_GUID gMyEfiBlockIoProtocolGuid;
-#else
-#define gMyEfiBlockIoProtocolGuid gEfiBlockIoProtocolGuid
-#define gMyEfiDiskIoProtocolGuid gEfiDiskIoProtocolGuid
-#endif
 #include "../include/refit_call_wrapper.h"
 
 extern struct fsw_host_table   fsw_efi_host_table;
@@ -98,9 +93,7 @@ static int scan_disks(int (*hook)(struct fsw_volume *, struct fsw_volume *), str
 
     // Driver hangs if compiled with GNU-EFI unless there's a Print() statement somewhere.
     // I'm still trying to track that down; in the meantime, work around it....
-#if defined(__MAKEWITH_GNUEFI)
     Print(L" ");
-#endif
     DPRINT(L"Scanning disks\n");
     Status = refit_call5_wrapper(BS->LocateHandleBuffer, ByProtocol, &gMyEfiDiskIoProtocolGuid, NULL, &HandleCount, &Handles);
     if (Status == EFI_NOT_FOUND)

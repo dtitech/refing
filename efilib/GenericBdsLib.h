@@ -18,9 +18,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #ifndef _GENERIC_BDS_LIB_H_
 #define _GENERIC_BDS_LIB_H_
 
-#ifdef __MAKEWITH_GNUEFI
 #include "gnuefi-helper.h"
-#endif
 
 //#include <Protocol/UserManager.h>
 
@@ -74,11 +72,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 //
 // This data structure is the part of BDS_CONNECT_ENTRY
 //
-#ifdef __MAKEWITH_TIANO
-#define BDS_LOAD_OPTION_SIGNATURE SIGNATURE_32 ('B', 'd', 'C', 'O')
-#else
 #define BDS_LOAD_OPTION_SIGNATURE EFI_SIGNATURE_32 ('B', 'd', 'C', 'O')
-#endif
 
 typedef struct {
 
@@ -475,17 +469,6 @@ EFIAPI
 DevicePathToStr (
   IN EFI_DEVICE_PATH_PROTOCOL     *DevPath
   );
-
-#ifdef __MAKEWITH_TIANO
-//
-// Internal definitions
-//
-typedef struct {
-  CHAR16  *Str;
-  UINTN   Len;
-  UINTN   Maxlen;
-} POOL_PRINT;
-#endif
 
 typedef
 VOID

@@ -38,14 +38,9 @@
 #ifndef _FSW_EFI_BASE_H_
 #define _FSW_EFI_BASE_H_
 
-// If its EDK2 EFI Toolkit
-#ifdef __MAKEWITH_TIANO
-#include "fsw_efi_edk2_base.h"
-#else
 // Intel EFI Toolkit
 #include <efi.h>
 #include <efilib.h>
-#endif
 
 #include "../include/refit_call_wrapper.h"
 
@@ -72,11 +67,7 @@ typedef UINT64  fsw_u64;
 // memory functions
 
 #define fsw_memzero(dest,size) ZeroMem(dest,size)
-#ifdef __MAKEWITH_GNUEFI
 #define fsw_memcpy(dest,src,size) refit_call3_wrapper(gBS->CopyMem, dest,src,size)
-#else
-#define fsw_memcpy(dest,src,size) CopyMem(dest,src,size)
-#endif
 #define fsw_memeq(p1,p2,size) (CompareMem(p1,p2,size) == 0)
 
 // message printing
@@ -88,8 +79,6 @@ typedef UINT64  fsw_u64;
 
 #define FSW_U64_SHR(val,shiftbits) RShiftU64((val), (shiftbits))
 #define FSW_U64_DIV(val,divisor) DivU64x32((val), (divisor), NULL)
-#ifdef __MAKEWITH_GNUEFI
 #define DivU64x32Remainder DivU64x32
-#endif
 
 #endif

@@ -37,10 +37,6 @@
 #ifndef __LIBEG_LIBEG_H__
 #define __LIBEG_LIBEG_H__
 
-#ifndef __MAKEWITH_GNUEFI
-#include "../include/tiano_includes.h"
-#endif
-
 /* types */
 
 typedef enum ColorTypes {

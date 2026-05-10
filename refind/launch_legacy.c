@@ -79,11 +79,6 @@
 extern REFIT_MENU_ENTRY MenuEntryReturn;
 extern REFIT_MENU_SCREEN MainMenu;
 
-#ifndef __MAKEWITH_GNUEFI
-#define LibLocateHandle gBS->LocateHandleBuffer
-#define DevicePathProtocol gEfiDevicePathProtocolGuid
-#endif
-
 EFI_GUID EfiGlobalVariableGuid = { 0x8BE4DF61, 0x93CA, 0x11D2, { 0xAA, 0x0D, 0x00, 0xE0, 0x98, 0x03, 0x2B, 0x8C }};
 
 #if defined(EFI32) || defined(EFIX64)

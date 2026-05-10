@@ -40,20 +40,9 @@
 
 #include "fsw_efi.h"
 #include "fsw_core.h"
-#ifdef __MAKEWITH_GNUEFI
 #include "edk2/DriverBinding.h"
 #include "edk2/ComponentName.h"
 #define gMyEfiSimpleFileSystemProtocolGuid FileSystemProtocol
-#else
-#define REFIND_EFI_DRIVER_BINDING_PROTOCOL EFI_DRIVER_BINDING_PROTOCOL
-#define REFIND_EFI_COMPONENT_NAME_PROTOCOL EFI_COMPONENT_NAME_PROTOCOL
-#define REFIND_EFI_COMPONENT_NAME_PROTOCOL_GUID EFI_COMPONENT_NAME_PROTOCOL_GUID
-#define REFIND_EFI_DRIVER_BINDING_PROTOCOL_GUID EFI_DRIVER_BINDING_PROTOCOL_GUID
-#define REFIND_EFI_DEVICE_PATH_PROTOCOL EFI_DEVICE_PATH_PROTOCOL
-#define EFI_FILE_SYSTEM_VOLUME_LABEL_INFO_ID    \
-    { 0xDB47D7D3,0xFE81, 0x11d3, {0x9A, 0x35, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D} }
-#define gMyEfiSimpleFileSystemProtocolGuid gEfiSimpleFileSystemProtocolGuid
-#endif
 
 #include "../include/version.h"
 
@@ -218,10 +207,8 @@ EFI_STATUS EFIAPI fsw_efi_main(IN EFI_HANDLE         ImageHandle,
 {
     EFI_STATUS  Status;
 
-#ifndef __MAKEWITH_TIANO
     // Not available in EDK2 toolkit
     InitializeLib(ImageHandle, SystemTable);
-#endif
 
     // complete Driver Binding protocol instance
     fsw_efi_DriverBinding_table.ImageHandle          = ImageHandle;
@@ -256,9 +243,7 @@ EFI_STATUS EFIAPI fsw_efi_main(IN EFI_HANDLE         ImageHandle,
     return EFI_SUCCESS;
 }
 
-#ifdef __MAKEWITH_GNUEFI
 EFI_DRIVER_ENTRY_POINT(fsw_efi_main)
-#endif
 
 /**
  * Driver Binding EFI protocol, Supported function. This function is called by EFI

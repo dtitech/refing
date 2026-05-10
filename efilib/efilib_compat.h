@@ -9,12 +9,8 @@
 #ifndef _EFILIB_COMPAT_H_
 #define _EFILIB_COMPAT_H_
 
-#ifdef __MAKEWITH_GNUEFI
 #include <efi.h>
 #include <efilib.h>
-#else
-#include "../include/tiano_includes.h"
-#endif
 
 typedef UINTN          size_t;
 

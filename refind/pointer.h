@@ -22,12 +22,8 @@
 #ifndef __REFIND_POINTERDEVICE_H_
 #define __REFIND_POINTERDEVICE_H_
 
-#ifdef __MAKEWITH_GNUEFI
 #include "efi.h"
 #include "efilib.h"
-#else
-#include "../include/tiano_includes.h"
-#endif
 
 #ifndef _EFI_POINT_H
 #include "../efilib/AbsolutePointer.h"
