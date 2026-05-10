@@ -13,8 +13,8 @@ VPATH = $(SRCDIR)
 
 LOCAL_GNUEFI_CFLAGS  = -I$(SRCDIR) -I$(SRCDIR)/../include
 
-OBJS            = efilib_compat.o efilib_time.o gnuefi-helper.o legacy.o \
-                  BdsHelper.o BdsTianoCore.o
+OBJS            = efilib_compat.o efilib_time.o efilib_str.o gnuefi-helper.o \
+                  legacy.o BdsHelper.o BdsTianoCore.o
 TARGET          = libefilib.a
 
 all: $(TARGET)

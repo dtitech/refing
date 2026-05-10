@@ -305,7 +305,7 @@ BOOLEAN egSetScreenSize(IN OUT UINTN *ScreenWidth, IN OUT UINTN *ScreenHeight) {
             Print(L"Error setting graphics mode %d x %d; using default mode!\nAvailable modes are:\n",
                   *ScreenWidth, *ScreenHeight);
             LOG(1, LOG_LINE_NORMAL, L"Error setting graphics mode %d x %d; using default mode!",
-                *ScreenWidth, *ScreenHeight)
+                *ScreenWidth, *ScreenHeight);
             LOG(1, LOG_LINE_NORMAL, L"Available modes are:");
             ModeNum = 0;
             do {
@@ -331,7 +331,7 @@ BOOLEAN egSetScreenSize(IN OUT UINTN *ScreenWidth, IN OUT UINTN *ScreenHeight) {
         // in all cases, but I don't know how to probe for alternatives....
         Status = refit_call5_wrapper(UgaDraw->GetMode, UgaDraw, &UGAWidth,
                                      &UGAHeight, &UGADepth, &UGARefreshRate);
-        LOG(1, LOG_LINE_NORMAL, L"Setting UGA Draw mode to %d x %d", *ScreenWidth, *ScreenHeight);
+        LOG(2, LOG_LINE_NORMAL, L"Setting UGA Draw mode to %d x %d", *ScreenWidth, *ScreenHeight);
         Status = refit_call5_wrapper(UgaDraw->SetMode, UgaDraw, *ScreenWidth,
                                      *ScreenHeight, UGADepth, UGARefreshRate);
         if (!EFI_ERROR(Status)) {
@@ -362,7 +362,7 @@ BOOLEAN egSetTextMode(UINT32 RequestedMode) {
     BOOLEAN       ChangedIt = FALSE;
 
     if ((RequestedMode != DONT_CHANGE_TEXT_MODE) && (RequestedMode != ST->ConOut->Mode->Mode)) {
-        LOG(1, LOG_LINE_NORMAL, L"Setting text mode to %d", RequestedMode);
+        LOG(2, LOG_LINE_NORMAL, L"Setting text mode to %d", RequestedMode);
         Status = refit_call2_wrapper(ST->ConOut->SetMode, ST->ConOut, RequestedMode);
         if (Status == EFI_SUCCESS) {
             ChangedIt = TRUE;
@@ -632,7 +632,7 @@ EFI_STATUS egScreenSave(VOID)
     if (!egHasGraphics)
         return EFI_UNSUPPORTED;
 
-    LOG(2, LOG_LINE_NORMAL, L"Saving screen");
+    LOG(3, LOG_LINE_NORMAL, L"Saving screen");
 
     egFreeImage(egSavedScreen);
     egSavedScreen = egCopyScreen();
@@ -640,7 +640,7 @@ EFI_STATUS egScreenSave(VOID)
         LOG(1, LOG_LINE_NORMAL, L"Error saving screen");
         return EFI_OUT_OF_RESOURCES;
     } else {
-        LOG(4, LOG_LINE_NORMAL, L"Screen saved");
+        LOG(3, LOG_LINE_NORMAL, L"Screen saved");
     }
 
     egSavedMode = GraphicsOutput ? GraphicsOutput->Mode->Mode : 0;

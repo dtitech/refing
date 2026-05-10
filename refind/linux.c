@@ -85,7 +85,7 @@ CHAR16 * FindInitrd(IN CHAR16 *LoaderPath, IN REFIT_VOLUME *Volume) {
     REFIT_DIR_ITER      DirIter;
     EFI_FILE_INFO       *DirEntry;
 
-    LOG(1, LOG_LINE_NORMAL, L"Searching for an initrd to match '%s' on '%s'", LoaderPath, Volume->VolName);
+    LOG(3, LOG_LINE_NORMAL, L"Searching for an initrd to match '%s' on '%s'", LoaderPath, Volume->VolName);
     FileName = Basename(LoaderPath);
     KernelVersion = FindNumbers(FileName);
     LOG(3, LOG_LINE_NORMAL, L"Kernel version string is '%s'", KernelVersion);
@@ -145,7 +145,7 @@ CHAR16 * FindInitrd(IN CHAR16 *LoaderPath, IN REFIT_VOLUME *Volume) {
     MyFreePool(KernelVersion);
     MyFreePool(Path);
     MyFreePool(FileName);
-    LOG(1, LOG_LINE_NORMAL, L"Located initrd is '%s'", InitrdName);
+    LOG(3, LOG_LINE_NORMAL, L"Located initrd is '%s'", InitrdName);
     return (InitrdName);
 } // static CHAR16 * FindInitrd()
 

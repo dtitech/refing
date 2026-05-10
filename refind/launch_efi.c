@@ -178,7 +178,7 @@ UINTN IsValidLoader(EFI_FILE_PROTOCOL *RootDir, CHAR16 *FileName) {
             TypeDesc = L"an invalid";
         }
     }
-    LOG(1, LOG_LINE_NORMAL, L"'%s' is %s loader file", FileName, TypeDesc);
+    LOG(3, LOG_LINE_NORMAL, L"'%s' is %s loader file", FileName, TypeDesc);
     MyFreePool(Header);
 #endif
     return LoaderType;
@@ -216,10 +216,10 @@ EFI_STATUS StartEFIImage(IN REFIT_VOLUME *Volume,
             // when passing options to Apple's boot.efi...
         } // if
     } // if (LoadOptions != NULL)
-    LOG(1, LOG_LINE_NORMAL, L"Starting %s", ImageTitle);
-    LOG(1, LOG_LINE_NORMAL, L"Using load options '%s'", FullLoadOptions ? FullLoadOptions : L"");
+    LOG(2, LOG_LINE_NORMAL, L"Starting %s", ImageTitle);
+    LOG(3, LOG_LINE_NORMAL, L"Using load options '%s'", FullLoadOptions ? FullLoadOptions : L"");
     if (IsDriver)
-        LOG(1, LOG_LINE_NORMAL, L"Note: %s is a driver", ImageTitle);
+        LOG(2, LOG_LINE_NORMAL, L"Note: %s is a driver", ImageTitle);
     if (Verbose)
         Print(L"Starting %s\nUsing load options '%s'\n", ImageTitle, FullLoadOptions ? FullLoadOptions : L"");
 
@@ -252,7 +252,7 @@ EFI_STATUS StartEFIImage(IN REFIT_VOLUME *Volume,
                 ImageSize = gzSize * 10;
                 ImageData = AllocateZeroPool(ImageSize);
                 gzStatus = gunzip(gzData, gzSize, NULL, NULL, ImageData, ImageSize, &ReadSize);
-                LOG(1, LOG_LINE_NORMAL, L"gunzip returned '%d'; ReadSize of '%ld'", gzStatus, ReadSize);
+                LOG(2, LOG_LINE_NORMAL, L"gunzip returned '%d'; ReadSize of '%ld'", gzStatus, ReadSize);
                 if (gzStatus == 0) {
                     ReturnStatus = Status = refit_call6_wrapper(BS->LoadImage, FALSE, SelfImageHandle, DevicePath,
                                                                 ImageData, 0x8000000, &ChildImageHandle);
@@ -308,7 +308,7 @@ EFI_STATUS StartEFIImage(IN REFIT_VOLUME *Volume,
     if ((GlobalConfig.WriteSystemdVars) && ((OSType == 'L') || (OSType == 'E') || (OSType == 'G'))) {
         // Tell systemd what ESP rEFInd used
         EspGUID = GuidAsString(&(SelfVolume->PartGuid));
-        LOG(1, LOG_LINE_NORMAL, L"Setting systemd's LoaderDevicePartUUID variable to %s", EspGUID);
+        LOG(3, LOG_LINE_NORMAL, L"Setting systemd's LoaderDevicePartUUID variable to %s", EspGUID);
         Status = EfivarSetRaw(&SystemdGuid, L"LoaderDevicePartUUID", (CHAR8 *) EspGUID,
                               StrLen(EspGUID) * 2 + 2, TRUE);
         if (EFI_ERROR(Status)) {
@@ -319,7 +319,7 @@ EFI_STATUS StartEFIImage(IN REFIT_VOLUME *Volume,
     } // if write systemd EFI variables
 
     // close open file handles
-    LOG(1, LOG_LINE_NORMAL, L"Launching '%s'", ImageTitle);
+    LOG(3, LOG_LINE_NORMAL, L"Launching '%s'", ImageTitle);
     UninitRefitLib();
 
     // Actually launch the program....
@@ -338,7 +338,7 @@ EFI_STATUS StartEFIImage(IN REFIT_VOLUME *Volume,
 
     // re-open file handles
     ReinitRefitLib();
-    LOG(1, LOG_LINE_NORMAL, L"Program has returned %d", Status);
+    LOG(3, LOG_LINE_NORMAL, L"Program has returned %d", Status);
 
 bailout_unload:
     // unload the image, we don't care if it works or not...
@@ -351,7 +351,7 @@ bailout:
     if (!IsDriver)
         FinishExternalScreen();
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Next loader");
+    LOG(3, LOG_LINE_THIN_SEP, L"Next loader");
     return ReturnStatus;
 } /* EFI_STATUS StartEFIImage() */
 
@@ -373,7 +373,7 @@ EFI_STATUS RebootIntoFirmware(VOID) {
     if (err != EFI_SUCCESS)
         return err;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Rebooting into the computer's firmware");
+    LOG(3, LOG_LINE_SEPARATOR, L"Rebooting into the computer's firmware");
     UninitRefitLib();
     refit_call4_wrapper(RT->ResetSystem, EfiResetCold, EFI_SUCCESS, 0, NULL);
     ReinitRefitLib();
@@ -387,7 +387,7 @@ EFI_STATUS RebootIntoFirmware(VOID) {
 VOID RebootIntoLoader(LOADER_ENTRY *Entry) {
     EFI_STATUS Status;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Rebooting into EFI loader '%s' (Boot%04x)",
+    LOG(3, LOG_LINE_SEPARATOR, L"Rebooting into EFI loader '%s' (Boot%04x)",
         Entry->Title, Entry->EfiBootNum);
     Status = EfivarSetRaw(&GlobalGuid, L"BootNext", (CHAR8*) &(Entry->EfiBootNum), sizeof(UINT16), TRUE);
     if (EFI_ERROR(Status)) {
@@ -396,7 +396,7 @@ VOID RebootIntoLoader(LOADER_ENTRY *Entry) {
         return;
     }
     StoreLoaderName(Entry->me.Title);
-    LOG(1, LOG_LINE_NORMAL, L"Attempting to reboot....", Entry->Title, Entry->EfiBootNum);
+    LOG(3, LOG_LINE_NORMAL, L"Attempting to reboot....", Entry->Title, Entry->EfiBootNum);
     UninitRefitLib();
     refit_call4_wrapper(RT->ResetSystem, EfiResetCold, EFI_SUCCESS, 0, NULL);
     ReinitRefitLib();
@@ -416,7 +416,7 @@ static VOID DoEnableAndLockVMX(VOID) {
     UINT32 msr = 0x3a;
     UINT32 low_bits = 0, high_bits = 0;
 
-    LOG(1, LOG_LINE_NORMAL, L"Attempting to enable and lock VMX");
+    LOG(3, LOG_LINE_NORMAL, L"Attempting to enable and lock VMX");
     // is VMX active ?
     __asm__ volatile ("rdmsr" : "=a" (low_bits), "=d" (high_bits) : "c" (msr));
 
@@ -434,7 +434,7 @@ static VOID DoEnableAndLockVMX(VOID) {
 VOID StartLoader(LOADER_ENTRY *Entry, CHAR16 *SelectionName) {
     CHAR16 *LoaderPath;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Launching '%s'", SelectionName);
+    LOG(3, LOG_LINE_SEPARATOR, L"Launching '%s'", SelectionName);
     if (GlobalConfig.EnableAndLockVMX) {
         DoEnableAndLockVMX();
     }
@@ -451,7 +451,7 @@ VOID StartLoader(LOADER_ENTRY *Entry, CHAR16 *SelectionName) {
 VOID StartTool(IN LOADER_ENTRY *Entry) {
     CHAR16 *LoaderPath;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Starting '%s'", Entry->me.Title);
+    LOG(3, LOG_LINE_SEPARATOR, L"Starting '%s'", Entry->me.Title);
     BeginExternalScreen(Entry->UseGraphicsMode, Entry->me.Title + 6);  // assumes "Start <title>" as assigned below
     StoreLoaderName(Entry->me.Title);
     LoaderPath = Basename(Entry->LoaderPath);

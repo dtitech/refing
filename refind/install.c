@@ -328,7 +328,7 @@ static EFI_STATUS CopyDrivers(IN EFI_FILE_PROTOCOL *SourceDirPtr,
     for (i = 0; i < NUM_FS_TYPES; i++)
         DriverCopied[i] = FALSE;
 
-    LOG(1, LOG_LINE_NORMAL, L"Scanning %d volumes for identifiable filesystems", VolumesCount);
+    LOG(3, LOG_LINE_NORMAL, L"Scanning %d volumes for identifiable filesystems", VolumesCount);
     for (i = 0; i < VolumesCount; i++) {
         LOG(3, LOG_LINE_NORMAL, L"Looking for driver for volume # %d, '%s'", i, Volumes[i]->VolName);
         DriverName = NULL;
@@ -382,7 +382,7 @@ static EFI_STATUS CopyDrivers(IN EFI_FILE_PROTOCOL *SourceDirPtr,
         if (DriverName) {
             SourceFileName = PoolPrint(L"%s\\%s%s", SourceDirName, DriverName, INST_PLATFORM_EXTENSION);
             DestFileName = PoolPrint(L"%s\\%s%s", DestDirName, DriverName, INST_PLATFORM_EXTENSION);
-            LOG(1, LOG_LINE_NORMAL, L"Trying to copy driver for %s", DriverName);
+            LOG(3, LOG_LINE_NORMAL, L"Trying to copy driver for %s", DriverName);
             Status = CopyOneFile(SourceDirPtr, SourceFileName, DestDirPtr, DestFileName);
             if (EFI_ERROR(Status))
                 WorstStatus = Status;
@@ -698,7 +698,7 @@ VOID InstallRefind(VOID) {
     REFIT_VOLUME  *SelectedESP; // Do not free
     UINTN         Status;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Installing rEFInd to an ESP");
+    LOG(3, LOG_LINE_THIN_SEP, L"Installing rEFInd to an ESP");
     AllESPs = FindAllESPs();
     SelectedESP = PickOneESP(AllESPs);
     if (SelectedESP) {
@@ -712,7 +712,7 @@ VOID InstallRefind(VOID) {
             DisplaySimpleMessage(L"Warning", L"Problems encountered during installation");
         } // if/else
     } // if
-    LOG(1, LOG_LINE_THIN_SEP, L"Done installing rEFInd to an ESP");
+    LOG(3, LOG_LINE_THIN_SEP, L"Done installing rEFInd to an ESP");
 } // VOID InstallRefind()
 
 /***********************
@@ -730,7 +730,7 @@ BOOT_ENTRY_LIST * FindBootOrderEntries(VOID) {
     CHAR16           *Contents = NULL;
     BOOT_ENTRY_LIST  *L, *ListStart = NULL, *ListEnd = NULL; // return value; do not free
 
-    LOG(1, LOG_LINE_NORMAL, L"Finding boot order entries");
+    LOG(3, LOG_LINE_NORMAL, L"Finding boot order entries");
     Status = EfivarGetRaw(&GlobalGuid, L"BootOrder", (CHAR8**) &BootOrder, &VarSize);
     if (Status != EFI_SUCCESS)
         return NULL;
@@ -858,7 +858,7 @@ static EFI_STATUS DeleteInvalidBootEntries(VOID) {
     CHAR8    *Contents;
     CHAR16   *VarName;
 
-    LOG(1, LOG_LINE_NORMAL, L"Deleting invalid boot entries from internal BootOrder list");
+    LOG(3, LOG_LINE_NORMAL, L"Deleting invalid boot entries from internal BootOrder list");
     Status = EfivarGetRaw(&GlobalGuid, L"BootOrder", (CHAR8**) &BootOrder, &VarSize);
     if (Status == EFI_SUCCESS) {
         ListSize = VarSize / sizeof(UINT16);
@@ -886,7 +886,7 @@ VOID ManageBootorder(VOID) {
     UINTN           BootNum = 0, Operation;
     CHAR16          *Name, *Message;
 
-    LOG(1, LOG_LINE_NORMAL, L"Managing boot order list");
+    LOG(3, LOG_LINE_NORMAL, L"Managing boot order list");
     Entries = FindBootOrderEntries();
     Operation = PickOneBootOption(Entries, &BootNum);
     if (Operation == EFI_BOOT_OPTION_DELETE) {

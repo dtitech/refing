@@ -12,6 +12,13 @@
 #
 timeout 20
 
+# Set the logging mode. When set to true, rEFInd does log directly to
+# log file. When set to false, logs are saved to internal buffer and
+# written to file on exit.
+# Default value is false
+#
+#log_direct true
+
 # Set the logging level. When set to 0, rEFInd does not log its actions.
 # When set to 1 or above, rEFInd creates a file called refind.log in
 # its home directory on the ESP and records information about what it's

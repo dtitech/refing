@@ -7,6 +7,7 @@
 **/
 
 #include "efilib_compat.h"
+#include "efilib_platform.h"
 
 size_t strlen(const char *s) {
     char *v = (char *)s;
@@ -49,7 +50,7 @@ void *memset(void * s, int c, size_t n) {
 void *memcpy(void * dest, const void * src, size_t n) {
     char *d = (char *)dest;
     char *s = (char *)src;
-    #if _M_X64 || _M_IA64 || defined(__x86_64__) || _M_ARM64 || defined(__aarch64__)
+    #ifdef MACHINE64
     while (n >= 8)
     {
         *(UINT64 *)d = *(UINT64 *)s;
@@ -79,7 +80,7 @@ int memcmp(const void *s1, const void *s2, size_t n)
 {
     char *m1 = (char *)s1;
     char *m2 = (char *)s2;
-    #if _M_X64 || _M_IA64 || defined(__x86_64__) || _M_ARM64 || defined(__aarch64__)
+    #ifdef MACHINE64
     while (n >= 8)
     {
         if (*(UINT64 *)m1 != *(UINT64 *)m2)

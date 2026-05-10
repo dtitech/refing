@@ -793,8 +793,8 @@ static LOADER_ENTRY * AddLoaderEntry(IN OUT CHAR16 *LoaderPath, IN CHAR16 *Loade
     if (Entry != NULL) {
         Entry->DiscoveryType = DISCOVERY_TYPE_AUTO;
         Entry->Title = StrDuplicate((LoaderTitle != NULL) ? LoaderTitle : LoaderPath);
-        LOG(1, LOG_LINE_NORMAL, L"Adding loader entry for '%s'", Entry->Title);
-        LOG(2, LOG_LINE_NORMAL, L"Loader path is '%s'", LoaderPath);
+        LOG(3, LOG_LINE_NORMAL, L"Adding loader entry for '%s'", Entry->Title);
+        LOG(4, LOG_LINE_NORMAL, L"Loader path is '%s'", LoaderPath);
         // Extra space at end of Entry->me.Title enables searching on Volume->VolName even if another volume
         // name is identical except for something added to the end (e.g., VolB1 vs. VolB12).
         // Note: Volume->VolName will be NULL for network boot programs.
@@ -1169,7 +1169,7 @@ static VOID ScanNetboot() {
     CHAR16        *Location;
     REFIT_VOLUME  *NetVolume;
 
-    LOG(1, LOG_LINE_NORMAL, L"Scanning for iPXE boot options");
+    LOG(3, LOG_LINE_NORMAL, L"Scanning for iPXE boot options");
     if (FileExists(SelfVolume->RootDir, IPXE_DISCOVER_NAME) &&
         FileExists(SelfVolume->RootDir, IPXE_NAME) &&
         IsValidLoader(SelfVolume->RootDir, IPXE_DISCOVER_NAME) &&
@@ -1215,7 +1215,7 @@ static VOID ScanEfiFiles(REFIT_VOLUME *Volume) {
     BOOLEAN          FoundBRBackup = FALSE;
 
     if (Volume && (Volume->RootDir != NULL) && (Volume->VolName != NULL) && (Volume->IsReadable)) {
-        LOG(1, LOG_LINE_NORMAL, L"Scanning EFI files on %s",
+        LOG(3, LOG_LINE_NORMAL, L"Scanning EFI files on %s",
             Volume->PartName ? Volume->PartName : Volume->VolName);
         MatchPatterns = StrDuplicate(LOADER_MATCH_PATTERNS);
         if (GlobalConfig.ScanAllLinux)
@@ -1327,7 +1327,7 @@ static VOID ScanEfiFiles(REFIT_VOLUME *Volume) {
         }
         MyFreePool(MatchPatterns);
     } else {
-        LOG(1, LOG_LINE_NORMAL, L"Called ScanEfiFiles() on an invalid volume");
+        LOG(2, LOG_LINE_NORMAL, L"Called ScanEfiFiles() on an invalid volume");
     }
 } // static VOID ScanEfiFiles()
 
@@ -1335,7 +1335,7 @@ static VOID ScanEfiFiles(REFIT_VOLUME *Volume) {
 static VOID ScanInternal(VOID) {
     UINTN                   VolumeIndex;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for internal EFI-mode boot loaders");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for internal EFI-mode boot loaders");
     for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
         if (Volumes[VolumeIndex]->DiskKind == DISK_KIND_INTERNAL) {
             ScanEfiFiles(Volumes[VolumeIndex]);
@@ -1347,7 +1347,7 @@ static VOID ScanInternal(VOID) {
 static VOID ScanExternal(VOID) {
     UINTN                   VolumeIndex;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for external EFI-mode boot loaders");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for external EFI-mode boot loaders");
     for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
         if (Volumes[VolumeIndex]->DiskKind == DISK_KIND_EXTERNAL) {
             ScanEfiFiles(Volumes[VolumeIndex]);
@@ -1359,7 +1359,7 @@ static VOID ScanExternal(VOID) {
 static VOID ScanOptical(VOID) {
     UINTN                   VolumeIndex;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for bootable EFI-mode optical discs");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for bootable EFI-mode optical discs");
     for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
         if (Volumes[VolumeIndex]->DiskKind == DISK_KIND_OPTICAL) {
             ScanEfiFiles(Volumes[VolumeIndex]);
@@ -1383,16 +1383,16 @@ static VOID ScanFirmwareDefined(IN UINTN Row, IN CHAR16 *MatchThis, IN EG_IMAGE 
     UINTN   i;
 
     if (Row == 0)
-        LOG(1, LOG_LINE_THIN_SEP, L"Scanning for EFI firmware-defined boot options");
+        LOG(3, LOG_LINE_THIN_SEP, L"Scanning for EFI firmware-defined boot options");
     DontScanFirmware = ReadHiddenTags(L"HiddenFirmware");
-    LOG(2, LOG_LINE_NORMAL, L"GlobalConfig.DontScanFirmware = '%s'", GlobalConfig.DontScanFirmware);
-    LOG(2, LOG_LINE_NORMAL, L"Firmware hidden tags = '%s'", DontScanFirmware);
+    LOG(4, LOG_LINE_NORMAL, L"GlobalConfig.DontScanFirmware = '%s'", GlobalConfig.DontScanFirmware);
+    LOG(4, LOG_LINE_NORMAL, L"Firmware hidden tags = '%s'", DontScanFirmware);
     MergeStrings(&DontScanFirmware, GlobalConfig.DontScanFirmware, L',');
     if (Row == 0) {
         LOG(2, LOG_LINE_NORMAL, L"Also not scanning for shells");
         MergeStrings(&DontScanFirmware, L"shell", L',');
     }
-    LOG(3, LOG_LINE_NORMAL, L"Merged firmware don't-scan list is '%s'", DontScanFirmware);
+    LOG(4, LOG_LINE_NORMAL, L"Merged firmware don't-scan list is '%s'", DontScanFirmware);
     BootEntries = FindBootOrderEntries();
     CurrentEntry = BootEntries;
     while (CurrentEntry != NULL) {
@@ -1412,7 +1412,7 @@ static VOID ScanFirmwareDefined(IN UINTN Row, IN CHAR16 *MatchThis, IN EG_IMAGE 
             }
         } // if/else
         if (ScanIt) {
-            LOG(1, LOG_LINE_NORMAL, L"Adding EFI loader entry for '%s'", CurrentEntry->BootEntry.Label);
+            LOG(3, LOG_LINE_NORMAL, L"Adding EFI loader entry for '%s'", CurrentEntry->BootEntry.Label);
             AddEfiLoaderEntry(CurrentEntry->BootEntry.DevPath,
                               CurrentEntry->BootEntry.Label,
                               CurrentEntry->BootEntry.BootNum, Row, Icon);
@@ -1476,7 +1476,7 @@ VOID ScanForBootloaders(BOOLEAN ShowMessage) {
     CHAR16   *HiddenTags;
     CHAR16   *OrigDontScanFiles, *OrigDontScanVolumes;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Scanning for boot loaders");
+    LOG(3, LOG_LINE_SEPARATOR, L"Scanning for boot loaders");
     if (ShowMessage)
         egDisplayMessage(L"Scanning for boot loaders; please wait....", &BGColor, CENTER);
 
@@ -1615,9 +1615,9 @@ VOID FindTool(CHAR16 *Locations, CHAR16 *Names, CHAR16 *Description, UINTN Icon)
     CHAR16 *ScannedLocations = NULL;
     BOOLEAN VolMatch;
 
-    LOG(1, LOG_LINE_NORMAL, L"Scanning for tools '%s' in '%s'", Names, Locations);
+    LOG(3, LOG_LINE_NORMAL, L"Scanning for tools '%s' in '%s'", Names, Locations);
     for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
-        LOG(2, LOG_LINE_NORMAL, L"FindTool: Scanning volume '%s'", Volumes[VolumeIndex]->VolName);
+        LOG(3, LOG_LINE_NORMAL, L"FindTool: Scanning volume '%s'", Volumes[VolumeIndex]->VolName);
         if (Volumes[VolumeIndex]->RootDir != NULL) {
             j = 0;
             while ((DirName = FindCommaDelimited(Locations, j++)) != NULL) {
@@ -1638,7 +1638,7 @@ VOID FindTool(CHAR16 *Locations, CHAR16 *Names, CHAR16 *Description, UINTN Icon)
                             if (IsValidTool(Volumes[VolumeIndex], PathName)) {
                                 FullDescription = PoolPrint(L"%s at %s on %s", Description, PathName,
                                                             Volumes[VolumeIndex]->VolName);
-                                LOG(1, LOG_LINE_NORMAL, L"Adding tag for '%s' on '%s'", FileName,
+                                LOG(3, LOG_LINE_NORMAL, L"Adding tag for '%s' on '%s'", FileName,
                                     Volumes[VolumeIndex]->VolName);
                                 AddToolEntry(Volumes[VolumeIndex], PathName, FullDescription,
                                              BuiltinIcon(Icon), 'S', FALSE);
@@ -1671,7 +1671,7 @@ VOID ScanForTools(VOID) {
     CHAR8 *b = 0;
     UINT32 CsrValue;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Scanning for tools");
+    LOG(3, LOG_LINE_SEPARATOR, L"Scanning for tools");
     if (!IsIn(GlobalConfig.ExtraToolLocations, SelfDirPath))
         MergeStrings(&GlobalConfig.ExtraToolLocations, SelfDirPath, L',');
 
@@ -1722,11 +1722,11 @@ VOID ScanForTools(VOID) {
                         TempMenuEntry->Image = BuiltinIcon(BUILTIN_ICON_FUNC_FIRMWARE);
                         AddMenuEntry(&MainMenu, TempMenuEntry);
                     } else {
-                        LOG(1, LOG_LINE_NORMAL, L"showtools includes firmware, but EFI lacks support");
+                        LOG(2, LOG_LINE_NORMAL, L"showtools includes firmware, but EFI lacks support");
                     } // if/else
                     MyFreePool(b);
                 } else {
-                    LOG(1, LOG_LINE_NORMAL, L"showtools includes firmware, but OsIndicationsSupported is missing");
+                    LOG(2, LOG_LINE_NORMAL, L"showtools includes firmware, but OsIndicationsSupported is missing");
                 }
                 break;
 
@@ -1766,7 +1766,7 @@ VOID ScanForTools(VOID) {
                         if ((Volumes[VolumeIndex]->RootDir != NULL)) {
                             if ((IsValidTool(Volumes[VolumeIndex], FileName))) {
                                 Description = PoolPrint(L"Apple Recovery on %s", Volumes[VolumeIndex]->VolName);
-                                LOG(1, LOG_LINE_NORMAL, L"Adding Apple Recovery tag for '%s' on '%s'", FileName,
+                                LOG(3, LOG_LINE_NORMAL, L"Adding Apple Recovery tag for '%s' on '%s'", FileName,
                                     Volumes[VolumeIndex]->VolName);
                                 AddToolEntry(Volumes[VolumeIndex], FileName, Description,
                                                 BuiltinIcon(BUILTIN_ICON_TOOL_APPLE_RESCUE), 'R', TRUE);
@@ -1786,7 +1786,7 @@ VOID ScanForTools(VOID) {
                             (IsValidTool(Volumes[VolumeIndex], FileName)) &&
                             ((VolName == NULL) || MyStriCmp(VolName, Volumes[VolumeIndex]->VolName))) {
                                 Description = PoolPrint(L"Microsoft Recovery on %s", Volumes[VolumeIndex]->VolName);
-                                LOG(1, LOG_LINE_NORMAL,
+                                LOG(3, LOG_LINE_NORMAL,
                                     L"Adding Windows Recovery tag for '%s' on '%s'",
                                     FileName, Volumes[VolumeIndex]->VolName);
                                 AddToolEntry(Volumes[VolumeIndex], FileName, Description,

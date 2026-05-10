@@ -678,7 +678,7 @@ EG_IMAGE * egLoadIcon(IN EFI_FILE_PROTOCOL *BaseDir, IN CHAR16 *Path, IN UINTN I
             LOG(4, LOG_LINE_NORMAL, L"In egLoadIcon(), have called egFreeImage()");
             Image = NewImage;
         } else {
-            LOG(1, LOG_LINE_NORMAL, L"Warning: Unable to scale icon from %d x %d to %d x %d from '%s'",
+            LOG(2, LOG_LINE_NORMAL, L"Warning: Unable to scale icon from %d x %d to %d x %d from '%s'",
                 Image->Width, Image->Height, IconSize, IconSize, Path);
             Print(L"Warning: Unable to scale icon from %d x %d to %d x %d from '%s'\n",
                   Image->Width, Image->Height, IconSize, IconSize, Path);

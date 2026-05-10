@@ -93,7 +93,7 @@ VOID RotateCsrValue(VOID) {
     EFI_GUID     CsrGuid = CSR_GUID;
     EFI_STATUS   Status;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Rotating CSR value");
+    LOG(2, LOG_LINE_SEPARATOR, L"Rotating CSR value");
     Status = GetCsrStatus(&CurrentValue);
     if ((Status == EFI_SUCCESS) && GlobalConfig.CsrValues) {
         ListItem = GlobalConfig.CsrValues;
@@ -104,7 +104,7 @@ VOID RotateCsrValue(VOID) {
         } else {
             TargetCsr = ListItem->Next->Value;
         }
-        LOG(1, LOG_LINE_NORMAL, L"CSR value was 0x%04x; setting to 0x%04x", CurrentValue, TargetCsr);
+        LOG(2, LOG_LINE_NORMAL, L"CSR value was 0x%04x; setting to 0x%04x", CurrentValue, TargetCsr);
         Status = EfivarSetRaw(&CsrGuid, L"csr-active-config", (CHAR8 *) &TargetCsr, 4, TRUE);
         if (Status == EFI_SUCCESS) {
             RecordgCsrStatus(TargetCsr, TRUE);
@@ -147,7 +147,7 @@ EFI_STATUS SetAppleOSInfo() {
     EFI_GUID apple_set_os_guid = EFI_APPLE_SET_OS_PROTOCOL_GUID;
     EfiAppleSetOsInterface *SetOs = NULL;
 
-    LOG(1, LOG_LINE_NORMAL, L"Setting Apple OS information, if applicable");
+    LOG(2, LOG_LINE_NORMAL, L"Setting Apple OS information, if applicable");
     Status = refit_call3_wrapper(BS->LocateProtocol, &apple_set_os_guid, NULL, (VOID**) &SetOs);
 
     // If not a Mac, ignore the call....

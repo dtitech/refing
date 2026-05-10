@@ -497,7 +497,7 @@ UINTN RunGenericMenu(IN REFIT_MENU_SCREEN *Screen,
         } else {
             if (HaveTimeout && TimeoutCountdown == 0) {
                 // timeout expired
-                LOG(1, LOG_LINE_NORMAL, L"Menu timeout expired");
+                LOG(3, LOG_LINE_NORMAL, L"Menu timeout expired");
                 MenuExit = MENU_EXIT_TIMEOUT;
                 break;
             } else if (HaveTimeout || GlobalConfig.ScreensaverTime > 0) {
@@ -1466,7 +1466,7 @@ VOID DisplaySimpleMessage(CHAR16* Title, CHAR16 *Message) {
     AddMenuInfoLine(&HideItemMenu, Message);
     AddMenuEntry(&HideItemMenu, &MenuEntryReturn);
     RunGenericMenu(&HideItemMenu, Style, &DefaultEntry, &ChosenOption);
-    LOG(1, LOG_LINE_NORMAL, L"%s - %s", Title, Message);
+    LOG(3, LOG_LINE_NORMAL, L"%s - %s", Title, Message);
 } // VOID DisplaySimpleMessage()
 
 // Check each filename in FilenameList to be sure it refers to a valid file. If
@@ -1535,7 +1535,7 @@ VOID ManageHiddenTags(VOID) {
     UINTN               MenuExit, i = 0;
     BOOLEAN             SaveTags, SaveTools, SaveLegacy = FALSE, SaveFirmware = FALSE;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Managing hidden tags");
+    LOG(3, LOG_LINE_SEPARATOR, L"Managing hidden tags");
     HideItemMenu.TitleImage = BuiltinIcon(BUILTIN_ICON_FUNC_HIDDEN);
     if (AllowGraphicsMode)
         Style = GraphicsMenuStyle;

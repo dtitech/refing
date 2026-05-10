@@ -91,7 +91,8 @@ REFIT_MENU_SCREEN MainMenu       = { L"Main Menu", NULL, 0, NULL, 0, NULL, 0, L"
                                      L"Insert, Tab, or F2 for more options; Esc or Backspace to refresh" };
 static REFIT_MENU_SCREEN AboutMenu      = { L"About", NULL, 0, NULL, 0, NULL, 0, NULL, L"Press Enter to return to main menu", L"" };
 
-REFIT_CONFIG GlobalConfig = { /* TextOnly = */ FALSE,
+REFIT_CONFIG GlobalConfig = { /* LogDirect = */ FALSE,
+                              /* TextOnly = */ FALSE,
                               /* ScanAllLinux = */ TRUE,
                               /* DeepLegacyScan = */ FALSE,
                               /* EnableAndLockVMX = */ FALSE,
@@ -174,7 +175,7 @@ VOID AboutrEFInd(VOID)
     CHAR16     *TempStr;
     UINT32     CsrStatus;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Displaying About/Info screen");
+    LOG(3, LOG_LINE_SEPARATOR, L"Displaying About/Info screen");
     if (AboutMenu.EntryCount == 0) {
         AboutMenu.TitleImage = BuiltinIcon(BUILTIN_ICON_FUNC_ABOUT);
         AddMenuInfoLine(&AboutMenu, PoolPrint(L"rEFInd Version %s", REFIND_VERSION));
@@ -240,7 +241,7 @@ VOID StoreLoaderName(IN CHAR16 *Name) {
 
 // Rescan for boot loaders
 VOID RescanAll(BOOLEAN DisplayMessage, BOOLEAN Reconnect) {
-    LOG(1, LOG_LINE_NORMAL, L"Re-scanning all boot loaders");
+    LOG(3, LOG_LINE_NORMAL, L"Re-scanning all boot loaders");
     FreeList((VOID ***) &(MainMenu.Entries), &MainMenu.EntryCount);
     MainMenu.Entries = NULL;
     MainMenu.EntryCount = 0;
@@ -283,7 +284,7 @@ static BOOLEAN SecureBootSetup(VOID) {
     EFI_STATUS Status;
     BOOLEAN    Success = FALSE;
 
-    LOG(1, LOG_LINE_NORMAL, L"Setting up Secure Boot (if applicable)");
+    LOG(3, LOG_LINE_NORMAL, L"Setting up Secure Boot (if applicable)");
     if (secure_mode() && ShimLoaded()) {
         LOG(2, LOG_LINE_NORMAL, L"Secure boot mode detected with loaded Shim; adding MOK extensions");
         Status = security_policy_install();
@@ -355,7 +356,7 @@ static VOID AdjustDefaultSelection() {
     CHAR16 *Element = NULL, *NewCommaDelimited = NULL, *PreviousBoot = NULL;
     EFI_STATUS Status;
 
-    LOG(1, LOG_LINE_NORMAL, L"Adjusting default_selection with PreviousBoot values");
+    LOG(3, LOG_LINE_NORMAL, L"Adjusting default_selection with PreviousBoot values");
     while ((Element = FindCommaDelimited(GlobalConfig.DefaultSelection, i++)) != NULL) {
         if (MyStriCmp(Element, L"+")) {
             Status = EfivarGetRaw(&RefindGuid, L"PreviousBoot", (CHAR8 **) &PreviousBoot, &j);
@@ -387,32 +388,32 @@ VOID LogBasicInfo(VOID) {
     EFI_GUID   UgaDrawProtocolGuid = EFI_UGA_DRAW_PROTOCOL_GUID;
     EFI_GUID   GraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"System information");
+    LOG(3, LOG_LINE_SEPARATOR, L"System information");
 #if defined(__MAKEWITH_GNUEFI)
-    LOG(1, LOG_LINE_NORMAL, L"rEFInd %s built with GNU-EFI", REFIND_VERSION);
+    LOG(3, LOG_LINE_NORMAL, L"rEFInd %s built with GNU-EFI", REFIND_VERSION);
 #else
-    LOG(1, LOG_LINE_NORMAL, L"rEFInd %s built with TianoCore EDK2", REFIND_VERSION);
+    LOG(3, LOG_LINE_NORMAL, L"rEFInd %s built with TianoCore EDK2", REFIND_VERSION);
 #endif
     TempStr = GuidAsString(&(SelfVolume->PartGuid));
-    LOG(1, LOG_LINE_NORMAL, L"rEFInd boot partition GUID: %s", TempStr);
+    LOG(3, LOG_LINE_NORMAL, L"rEFInd boot partition GUID: %s", TempStr);
     MyFreePool(TempStr);
 #if defined(EFI32)
-    LOG(1, LOG_LINE_NORMAL, L"Platform: x86/IA32/i386 (32-bit)");
+    LOG(3, LOG_LINE_NORMAL, L"Platform: x86/IA32/i386 (32-bit)");
 #elif defined(EFIX64)
-    LOG(1, LOG_LINE_NORMAL, L"Platform: x86-64/X64/AMD64 (64-bit)");
+    LOG(3, LOG_LINE_NORMAL, L"Platform: x86-64/X64/AMD64 (64-bit)");
 #elif defined(EFIAARCH64)
-    LOG(1, LOG_LINE_NORMAL, L"Platform: ARM64/AARCH64 (64-bit)");
+    LOG(3, LOG_LINE_NORMAL, L"Platform: ARM64/AARCH64 (64-bit)");
 #else
-    LOG(1, LOG_LINE_NORMAL, L"Platform: unknown");
+    LOG(3, LOG_LINE_NORMAL, L"Platform: unknown");
 #endif
-    LOG(1, LOG_LINE_NORMAL, L"Log level is %d", GlobalConfig.LogLevel);
-    LOG(1, LOG_LINE_NORMAL, L"Menu timeout is %d", GlobalConfig.Timeout);
-    LOG(1, LOG_LINE_NORMAL, L"Firmware: %s %d.%02d", ST->FirmwareVendor,
+    LOG(3, LOG_LINE_NORMAL, L"Log level is %d", GlobalConfig.LogLevel);
+    LOG(3, LOG_LINE_NORMAL, L"Menu timeout is %d", GlobalConfig.Timeout);
+    LOG(3, LOG_LINE_NORMAL, L"Firmware: %s %d.%02d", ST->FirmwareVendor,
         ST->FirmwareRevision >> 16, ST->FirmwareRevision & ((1 << 16) - 1));
-    LOG(1, LOG_LINE_NORMAL, L"EFI Revision %d.%02d", EfiMajorVersion,
+    LOG(3, LOG_LINE_NORMAL, L"EFI Revision %d.%02d", EfiMajorVersion,
         ST->Hdr.Revision & ((1 << 16) - 1));
-    LOG(1, LOG_LINE_NORMAL, L"Secure Boot %s", secure_mode() ? L"active" : L"inactive");
-    LOG(1, LOG_LINE_NORMAL, L"Shim is%s available", ShimLoaded() ? L"" : L" not");
+    LOG(3, LOG_LINE_NORMAL, L"Secure Boot %s", secure_mode() ? L"active" : L"inactive");
+    LOG(3, LOG_LINE_NORMAL, L"Shim is%s available", ShimLoaded() ? L"" : L" not");
     switch (GlobalConfig.LegacyType) {
         case LEGACY_TYPE_MAC:
             TempStr = L"CSM type: Mac";
@@ -427,42 +428,42 @@ VOID LogBasicInfo(VOID) {
             TempStr = L"CSM type: unknown";
             break;
     }
-    LOG(1, LOG_LINE_NORMAL, TempStr);
+    LOG(3, LOG_LINE_NORMAL, TempStr);
     if (EfiMajorVersion > 1) { // QueryVariableInfo() is not supported in EFI 1.x
         LOG(3, LOG_LINE_NORMAL, L"Trying to get variable info....");
         Status = refit_call4_wrapper(RT->QueryVariableInfo, EFI_VARIABLE_NON_VOLATILE,
                                      &MaximumVariableStorageSize, &RemainingVariableStorageSize,
                                      &MaximumVariableSize);
         if (EFI_ERROR(Status)) {
-            LOG(1, LOG_LINE_NORMAL, L"Error %d; Unable to retrieve EFI variable capacity", Status);
+            LOG(2, LOG_LINE_NORMAL, L"Error %d; Unable to retrieve EFI variable capacity", Status);
         } else {
-            LOG(1, LOG_LINE_NORMAL, L"EFI non-volatile storage:");
-            LOG(1, LOG_LINE_NORMAL, L"   Total storage: %ld", MaximumVariableStorageSize);
-            LOG(1, LOG_LINE_NORMAL, L"   Remaining available: %ld", RemainingVariableStorageSize);
-            LOG(1, LOG_LINE_NORMAL, L"   Maximum variable size: %ld", MaximumVariableSize);
+            LOG(3, LOG_LINE_NORMAL, L"EFI non-volatile storage:");
+            LOG(3, LOG_LINE_NORMAL, L"   Total storage: %ld", MaximumVariableStorageSize);
+            LOG(3, LOG_LINE_NORMAL, L"   Remaining available: %ld", RemainingVariableStorageSize);
+            LOG(3, LOG_LINE_NORMAL, L"   Maximum variable size: %ld", MaximumVariableSize);
         }
     } else {
-        LOG(1, LOG_LINE_NORMAL, L"EFI 1.x; EFI non-volatile storage information is unavailable");
+        LOG(2, LOG_LINE_NORMAL, L"EFI 1.x; EFI non-volatile storage information is unavailable");
     }
 
     // Report which video output devices are available. We don't actually
     // use them, so just use TempStr as a throwaway pointer to the protocol.
     Status = LibLocateProtocol(&ConsoleControlProtocolGuid, (VOID **) &TempStr);
-    LOG(1, LOG_LINE_NORMAL, L"System does%s support text mode",
+    LOG(3, LOG_LINE_NORMAL, L"System does%s support text mode",
         EFI_ERROR(Status) ? L" not" : L"");
 
     Status = LibLocateProtocol(&UgaDrawProtocolGuid, (VOID **) &TempStr);
-    LOG(1, LOG_LINE_NORMAL, L"System does%s support UGA Draw graphics mode",
+    LOG(3, LOG_LINE_NORMAL, L"System does%s support UGA Draw graphics mode",
         EFI_ERROR(Status) ? L" not" : L"");
 
     Status = LibLocateProtocol(&GraphicsOutputProtocolGuid, (VOID **) &TempStr);
-    LOG(1, LOG_LINE_NORMAL, L"System does%s support GOP graphics mode",
+    LOG(3, LOG_LINE_NORMAL, L"System does%s support GOP graphics mode",
         EFI_ERROR(Status) ? L" not" : L"");
 
 #ifdef __MAKEWITH_TIANO
     if (gDS == 0) {
-        LOG(1, LOG_LINE_NORMAL, L"WARNING: EfiGetSystemConfigurationTable() returned error status %lu!", Status);
-        LOG(1, LOG_LINE_NORMAL, L"         Some functionality will be impaired!");
+        LOG(2, LOG_LINE_NORMAL, L"WARNING: EfiGetSystemConfigurationTable() returned error status %lu!", Status);
+        LOG(2, LOG_LINE_NORMAL, L"         Some functionality will be impaired!");
     }
 #endif
 } // VOID LogBasicInfo()
@@ -489,6 +490,11 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     if (EFI_ERROR(Status))
         return Status;
 
+    // initialize logging, to buffer until LOG_Activate
+    LOG_Init();
+
+    LOG(4, LOG_LINE_NORMAL, L"Log start");
+
     // read configuration
     GlobalConfig.ScanFor = SCANFOR_FLAG_INT |
                            SCANFOR_FLAG_EXT |
@@ -505,10 +511,10 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     // by the drivers.
     ScanVolumes();
     ReadConfig(GlobalConfig.ConfigFilename);
-    if (GlobalConfig.LogLevel > 0) {
-        StartLogging(FALSE);
+
+    LOG_Activate(GlobalConfig.LogDirect);
+    if (GlobalConfig.LogLevel > 0)
         LogBasicInfo();
-    }
 
     InitScreen();
 
@@ -517,7 +523,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     if (LoadDrivers())
         ScanVolumes();
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Initializing basic features");
+    LOG(3, LOG_LINE_SEPARATOR, L"Initializing basic features");
     AdjustDefaultSelection();
 
     if (GlobalConfig.SpoofOSXVersion && GlobalConfig.SpoofOSXVersion[0] != L'\0')
@@ -527,7 +533,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     MainMenu.TimeoutSeconds = GlobalConfig.Timeout;
 
     // disable EFI watchdog timer
-    LOG(1, LOG_LINE_NORMAL, L"Setting watchdog timer");
+    LOG(3, LOG_LINE_NORMAL, L"Setting watchdog timer");
     refit_call4_wrapper(BS->SetWatchdogTimer, 0x0000, 0x0000, 0x0000, NULL);
 
     // further bootstrap (now with config available)
@@ -544,7 +550,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
     if (GlobalConfig.ScanDelay > 0) {
        if (GlobalConfig.ScanDelay > 1) {
-          LOG(1, LOG_LINE_NORMAL, L"Pausing before re-scan");
+          LOG(3, LOG_LINE_NORMAL, L"Pausing before re-scan");
           egDisplayMessage(L"Pausing before disk scan; please wait....", &BGColor, CENTER);
        }
        for (i = 0; i < GlobalConfig.ScanDelay; i++)
@@ -558,7 +564,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     if (GlobalConfig.ShutdownAfterTimeout)
         MainMenu.TimeoutText = L"Shutdown";
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Entering main loop");
+    LOG(3, LOG_LINE_SEPARATOR, L"Entering main loop");
     while (MainLoopRunning) {
         MenuExit = RunMainMenu(&MainMenu, &SelectionName, &ChosenEntry);
 
@@ -577,7 +583,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
             case TAG_REBOOT:    // Reboot
                 TerminateScreen();
-                LOG(1, LOG_LINE_SEPARATOR, L"Rebooting system");
+                LOG(3, LOG_LINE_SEPARATOR, L"Rebooting system");
                 refit_call4_wrapper(RT->ResetSystem, EfiResetCold, EFI_SUCCESS, 0, NULL);
                 LOG(1, LOG_LINE_NORMAL, L"Reboot FAILED!");
                 MainLoopRunning = FALSE;   // just in case we get this far
@@ -585,7 +591,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
 
             case TAG_SHUTDOWN: // Shut Down
                 TerminateScreen();
-                LOG(1, LOG_LINE_SEPARATOR, L"Shutting down system");
+                LOG(3, LOG_LINE_SEPARATOR, L"Shutting down system");
                 refit_call4_wrapper(RT->ResetSystem, EfiResetShutdown, EFI_SUCCESS, 0, NULL);
                 LOG(1, LOG_LINE_NORMAL, L"Shutdown FAILED!");
                 MainLoopRunning = FALSE;   // just in case we get this far
@@ -655,7 +661,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
     refit_call4_wrapper(RT->ResetSystem, EfiResetCold, EFI_SUCCESS, 0, NULL);
     ReinitRefitLib();
     LOG(1, LOG_LINE_SEPARATOR, L"Shutdown after main loop exit has FAILED!");
-    StopLogging();
+    LOG_End();
     EndlessIdleLoop();
 
     return EFI_SUCCESS;

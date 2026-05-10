@@ -353,6 +353,7 @@ typedef struct {
 } LEGACY_ENTRY;
 
 typedef struct {
+   BOOLEAN          LogDirect;
    BOOLEAN          TextOnly;
    BOOLEAN          ScanAllLinux;
    BOOLEAN          DeepLegacyScan;

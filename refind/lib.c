@@ -327,7 +327,7 @@ VOID UninitRefitLib(VOID)
     // EXCEPT on Tow-Boot, where stopping logging can cause the system
     // to crash!
     if (StrCmp(ST->FirmwareVendor, L"Das U-Boot") != 0) {
-        StopLogging();
+        LOG_End();
     }
 
     // This piece of code was made to correspond to weirdness in ReinitRefitLib().
@@ -380,7 +380,7 @@ EFI_STATUS ReinitRefitLib(VOID)
         // hang or other problem....
         GlobalConfig.LogLevel = 0;
     } else {
-        StartLogging(TRUE);
+        LOG_Reactivate();
     }
     return Status;
 }
@@ -401,14 +401,14 @@ EFI_STATUS CreateVarsDir(VOID) {
     EFI_FILE_HANDLE  EspRootDir;
 
     if (gVarsDir == NULL) {
-        LOG(1, LOG_LINE_NORMAL, L"Trying to create a 'vars' directory in which to hold variables");
+        LOG(3, LOG_LINE_NORMAL, L"Trying to create a 'vars' directory in which to hold variables");
         Status = refit_call5_wrapper(SelfDir->Open, SelfDir, &gVarsDir, L"vars",
                                      EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
                                      EFI_FILE_DIRECTORY);
         if (EFI_ERROR(Status)) {
             Status = egFindESP(&EspRootDir);
             if (Status == EFI_SUCCESS) {
-                LOG(1, LOG_LINE_NORMAL,
+                LOG(3, LOG_LINE_NORMAL,
                     L"Trying to create a 'refind-vars' directory on the ESP in which to hold variables");
                 Status = refit_call5_wrapper(EspRootDir->Open, EspRootDir, &gVarsDir, L"refind-vars",
                                              EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
@@ -418,8 +418,8 @@ EFI_STATUS CreateVarsDir(VOID) {
     }
     if (EFI_ERROR(Status)) {
         GlobalConfig.UseNvram = TRUE;
-        LOG(1, LOG_LINE_NORMAL, L"Unable to create a directory in which to hold variables; error %d", Status);
-        LOG(1, LOG_LINE_NORMAL, L"Falling back to NVRAM-based storage");
+        LOG(2, LOG_LINE_NORMAL, L"Unable to create a directory in which to hold variables; error %d", Status);
+        LOG(2, LOG_LINE_NORMAL, L"Falling back to NVRAM-based storage");
     }
     return Status;
 } // EFI_STATUS FindVarsDir()
@@ -785,7 +785,7 @@ static VOID ScanVolumeBootcode(REFIT_VOLUME *Volume, BOOLEAN *Bootable)
                                  Volume->BlockIO, Volume->BlockIO->Media->MediaId,
                                  Volume->BlockIOOffset, SAMPLE_SIZE, Buffer);
     if (EFI_ERROR(Status)) {
-        LOG(1, LOG_LINE_NORMAL, L"Error %d reading boot sector of '%s'", Status, Volume->VolName);
+        LOG(3, LOG_LINE_NORMAL, L"Error %d reading boot sector of '%s'", Status, Volume->VolName);
     } else {
         SetFilesystemData(Buffer, SAMPLE_SIZE, Volume);
     }
@@ -889,7 +889,7 @@ static VOID ScanVolumeBootcode(REFIT_VOLUME *Volume, BOOLEAN *Bootable)
         // NOTE: If you add an operating system with a name that starts with 'W' or 'L', you
         //  need to fix AddLegacyEntry in refind/legacy.c.
 
-        LOG(1, LOG_LINE_NORMAL, L"Result of bootcode detection: %s %s (%s)",
+        LOG(3, LOG_LINE_NORMAL, L"Result of bootcode detection: %s %s (%s)",
             Volume->HasBootCode ? L"bootable" : L"non-bootable", Volume->OSName,
             Volume->OSIconName);
 
@@ -1104,7 +1104,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
     if (EFI_ERROR(Status)) {
         Volume->BlockIO = NULL;
         Print(L"Warning: Can't get BlockIO protocol.\n");
-        LOG(1, LOG_LINE_NORMAL, L"Warning: Can't get BlockIO protocol in ScanVolume()");
+        LOG(2, LOG_LINE_NORMAL, L"Warning: Can't get BlockIO protocol in ScanVolume()");
     } else {
         if (Volume->BlockIO->Media->BlockSize == 2048)
             Volume->DiskKind = DISK_KIND_OPTICAL;
@@ -1152,7 +1152,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
                 Status = refit_call3_wrapper(BS->HandleProtocol, WholeDiskHandle,
                                              &DevicePathProtocol, (VOID **) &DiskDevicePath);
                 if (EFI_ERROR(Status)) {
-                    LOG(1, LOG_LINE_NORMAL, L"Could not get DiskDevicePath for volume");
+                    LOG(2, LOG_LINE_NORMAL, L"Could not get DiskDevicePath for volume");
                 } else {
                     Volume->WholeDiskDevicePath = DuplicateDevicePath(DiskDevicePath);
                 }
@@ -1161,7 +1161,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
                 Status = refit_call3_wrapper(BS->HandleProtocol, WholeDiskHandle, &BlockIoProtocol,
                                              (VOID **) &Volume->WholeDiskBlockIO);
                 if (EFI_ERROR(Status)) {
-                    LOG(1, LOG_LINE_NORMAL, L"Could not get WholeDiskBlockIO for volume");
+                    LOG(2, LOG_LINE_NORMAL, L"Could not get WholeDiskBlockIO for volume");
                     Volume->WholeDiskBlockIO = NULL;
                     //CheckError(Status, L"from HandleProtocol");
                 } else {
@@ -1170,7 +1170,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
                         Volume->DiskKind = DISK_KIND_OPTICAL;
                 }
             } else {
-                LOG(1, LOG_LINE_NORMAL, L"Could not locate device path for volume");
+                LOG(2, LOG_LINE_NORMAL, L"Could not locate device path for volume");
             }
         }
 
@@ -1289,7 +1289,7 @@ VOID ScanVolumes(VOID)
     EFI_GUID                *UuidList;
     EFI_GUID                NullUuid = NULL_GUID_VALUE;
 
-    LOG(1, LOG_LINE_SEPARATOR, L"Scanning for volumes");
+    LOG(3, LOG_LINE_SEPARATOR, L"Scanning for volumes");
     MyFreePool(Volumes);
     Volumes = NULL;
     VolumesCount = 0;
@@ -1311,7 +1311,7 @@ VOID ScanVolumes(VOID)
         Volume->DeviceHandle = Handles[HandleIndex];
         AddPartitionTable(Volume);
         ScanVolume(Volume);
-        LOG(1, LOG_LINE_NORMAL, L"Identified volume '%s', of type%s", Volume->VolName, FSTypeName(Volume->FSType));
+        LOG(3, LOG_LINE_NORMAL, L"Identified volume '%s', of type%s", Volume->VolName, FSTypeName(Volume->FSType));
         if (UuidList) {
            UuidList[HandleIndex] = Volume->VolUuid;
            for (i = 0; i < HandleIndex; i++) {
@@ -1404,7 +1404,7 @@ VOID ScanVolumes(VOID)
             MyFreePool(SectorBuffer2);
         }
     } // for
-    LOG(1, LOG_LINE_NORMAL, L"Identified %d volumes", VolumesCount);
+    LOG(3, LOG_LINE_NORMAL, L"Identified %d volumes", VolumesCount);
 } /* VOID ScanVolumes() */
 
 VOID SetVolumeIcons(VOID) {
@@ -1412,7 +1412,7 @@ VOID SetVolumeIcons(VOID) {
     BOOLEAN      ScanForIcons = (GlobalConfig.ScanFor & (~SCANFOR_FLAG_MANUAL)) != 0;
     REFIT_VOLUME *Volume;
 
-    LOG(1, LOG_LINE_NORMAL, L"Setting volume icons....");
+    LOG(3, LOG_LINE_NORMAL, L"Setting volume icons....");
     for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
         Volume = Volumes[VolumeIndex];
         // Set volume icon based on .VolumeBadge icon or disk kind
@@ -1470,7 +1470,7 @@ EFI_STATUS DirNextEntry(IN EFI_FILE_PROTOCOL *Directory, IN OUT EFI_FILE_INFO **
             if (Status != EFI_BUFFER_TOO_SMALL || IterCount >= 4)
                 break;
             if (BufferSize <= LastBufferSize) {
-                LOG(1, LOG_LINE_NORMAL,
+                LOG(2, LOG_LINE_NORMAL,
                     L"FS Driver requests bad buffer size %d (was %d), using %d instead",
                     BufferSize, LastBufferSize, LastBufferSize * 2);
                 BufferSize = LastBufferSize * 2;

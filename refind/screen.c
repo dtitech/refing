@@ -105,7 +105,7 @@ static VOID PrepareBlankLine(VOID) {
 
 VOID InitScreen(VOID)
 {
-    LOG(1, LOG_LINE_NORMAL, L"Entering InitScreen()");
+    LOG(3, LOG_LINE_NORMAL, L"Entering InitScreen()");
     // initialize libeg
     egInitScreen();
 
@@ -148,7 +148,7 @@ VOID SetupScreen(VOID)
 {
     UINTN NewWidth, NewHeight;
 
-    LOG(1, LOG_LINE_NORMAL, L"Setting screen resolution and mode");
+    LOG(3, LOG_LINE_NORMAL, L"Setting screen resolution and mode");
     // Convert mode number to horizontal & vertical resolution values
     if ((GlobalConfig.RequestedScreenWidth > 0) && (GlobalConfig.RequestedScreenHeight == 0))
        egGetResFromMode(&(GlobalConfig.RequestedScreenWidth), &(GlobalConfig.RequestedScreenHeight));
@@ -559,7 +559,7 @@ VOID BltBackgroundScreen()
         }
 
         if (!Banner) { // on problem with banner
-            LOG(1, LOG_LINE_NORMAL, L"ERROR: [BltBackgroundScreen] Unable to load/process Banner");
+            LOG(2, LOG_LINE_NORMAL, L"ERROR: [BltBackgroundScreen] Unable to load/process Banner");
 
             MenuBackgroundPixel = GlobalConfig.BackgroundColor ? GlobalConfig.BackgroundPixel
                                                                : StdBackgroundPixel;

@@ -380,13 +380,13 @@ static EFI_STATUS StartLegacyImageList(IN EFI_DEVICE_PATH **DevicePaths,
     // TODO: (optionally) re-enable the EFI watchdog timer!
 
     // close open file handles
-    LOG(1, LOG_LINE_NORMAL, L"Launching Mac-style BIOS/CSM/legacy loader");
+    LOG(3, LOG_LINE_NORMAL, L"Launching Mac-style BIOS/CSM/legacy loader");
     UninitRefitLib();
     ReturnStatus = Status = refit_call3_wrapper(BS->StartImage, ChildImageHandle, NULL, NULL);
 
     // control returns here when the child image calls Exit()
     if (CheckError(Status, L"returned from legacy loader")) {
-        LOG(1, LOG_LINE_NORMAL, L"returned from legacy loader");
+        LOG(3, LOG_LINE_NORMAL, L"returned from legacy loader");
         if (ErrorInStep != NULL)
             *ErrorInStep = 3;
     }
@@ -412,7 +412,7 @@ VOID StartLegacy(IN LEGACY_ENTRY *Entry, IN CHAR16 *SelectionName)
     UINTN               ErrorInStep = 0;
     EFI_DEVICE_PATH     *DiscoveredPathList[MAX_DISCOVERED_PATHS];
 
-    LOG(1, LOG_LINE_NORMAL, L"Starting Mac-style BIOS/CSM/legacy loader '%s'", SelectionName);
+    LOG(3, LOG_LINE_NORMAL, L"Starting Mac-style BIOS/CSM/legacy loader '%s'", SelectionName);
     BeginExternalScreen(TRUE, L"Booting Legacy OS (Mac mode)");
 
     BootLogoImage = LoadOSIcon(Entry->Volume->OSIconName, L"legacy", TRUE);
@@ -448,7 +448,7 @@ VOID StartLegacy(IN LEGACY_ENTRY *Entry, IN CHAR16 *SelectionName)
 VOID StartLegacyUEFI(LEGACY_ENTRY *Entry, CHAR16 *SelectionName)
 {
 #if defined(EFI32) || defined(EFIX64)
-    LOG(1, LOG_LINE_SEPARATOR, L"Launching UEFI-style BIOS/CSM/legacy OS '%s'", SelectionName);
+    LOG(3, LOG_LINE_SEPARATOR, L"Launching UEFI-style BIOS/CSM/legacy OS '%s'", SelectionName);
     BeginExternalScreen(TRUE, L"Booting Legacy OS (UEFI mode)");
     StoreLoaderName(SelectionName);
 
@@ -487,7 +487,7 @@ static LEGACY_ENTRY * AddLegacyEntry(IN CHAR16 *LoaderTitle, IN REFIT_VOLUME *Vo
         VolDesc = (Volume->DiskKind == DISK_KIND_OPTICAL) ? L"CD" : L"HD";
 
     LegacyTitle = PoolPrint(L"Boot %s from %s", LoaderTitle, VolDesc);
-    LOG(1, LOG_LINE_NORMAL, L"Adding BIOS/CSM/legacy entry for '%s'", LegacyTitle);
+    LOG(3, LOG_LINE_NORMAL, L"Adding BIOS/CSM/legacy entry for '%s'", LegacyTitle);
     if (IsInSubstring(LegacyTitle, GlobalConfig.DontScanVolumes)) {
         MyFreePool(LegacyTitle);
         return NULL;
@@ -556,7 +556,7 @@ static LEGACY_ENTRY * AddLegacyEntryUEFI(BDS_COMMON_OPTION *BdsOption, IN UINT16
     if (!Entry)
         return NULL;
     Entry->me.Title          = PoolPrint(L"Boot legacy OS from %s", LegacyDescription);
-    LOG(1, LOG_LINE_NORMAL, L"Adding UEFI-style BIOS/CSM/legacy entry for '%s'", Entry->me.Title);
+    LOG(3, LOG_LINE_NORMAL, L"Adding UEFI-style BIOS/CSM/legacy entry for '%s'", Entry->me.Title);
     Entry->me.Tag            = TAG_LEGACY_UEFI;
     Entry->me.Row            = 0;
     Entry->me.ShortcutLetter = ShortcutLetter;
@@ -611,7 +611,7 @@ static VOID ScanLegacyUEFI(IN UINTN DiskType)
     BBS_BBS_DEVICE_PATH       *BbsDevicePath = NULL;
     BOOLEAN                   SearchingForUsb = FALSE;
 
-    LOG(1, LOG_LINE_NORMAL, L"Scanning for a UEFI-style BIOS/CSM/legacy OS");
+    LOG(3, LOG_LINE_NORMAL, L"Scanning for a UEFI-style BIOS/CSM/legacy OS");
     InitializeListHead (&TempList);
     ZeroMem (Buffer, sizeof (Buffer));
 
@@ -707,7 +707,7 @@ VOID ScanLegacyDisc(VOID)
     UINTN                   VolumeIndex;
     REFIT_VOLUME            *Volume;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for BIOS/CSM/legacy-mode optical discs");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for BIOS/CSM/legacy-mode optical discs");
     if (GlobalConfig.LegacyType == LEGACY_TYPE_MAC) {
         for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
             Volume = Volumes[VolumeIndex];
@@ -728,7 +728,7 @@ VOID ScanLegacyInternal(VOID)
     UINTN                   VolumeIndex;
     REFIT_VOLUME            *Volume;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for BIOS/CSM/legacy-mode internal disks");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for BIOS/CSM/legacy-mode internal disks");
     if (GlobalConfig.LegacyType == LEGACY_TYPE_MAC) {
        for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
            Volume = Volumes[VolumeIndex];
@@ -751,7 +751,7 @@ VOID ScanLegacyExternal(VOID)
     UINTN                   VolumeIndex;
     REFIT_VOLUME            *Volume;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for BIOS/CSM/legacy-mode external disks");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for BIOS/CSM/legacy-mode external disks");
     if (GlobalConfig.LegacyType == LEGACY_TYPE_MAC) {
         for (VolumeIndex = 0; VolumeIndex < VolumesCount; VolumeIndex++) {
             Volume = Volumes[VolumeIndex];
@@ -796,7 +796,7 @@ VOID WarnIfLegacyProblems(VOID) {
 
     if (GlobalConfig.LegacyType == LEGACY_TYPE_NONE) {
         if (found) {
-            LOG(1, LOG_LINE_NORMAL, L"BIOS/CSM/legacy support enabled in rEFInd but unavailable in EFI!");
+            LOG(2, LOG_LINE_NORMAL, L"BIOS/CSM/legacy support enabled in rEFInd but unavailable in EFI!");
             Print(L"NOTE: refind.conf's 'scanfor' line specifies scanning for one or more legacy\n");
             Print(L"(BIOS) boot options; however, this is not possible because your computer lacks\n");
             Print(L"the necessary Compatibility Support Module (CSM) support or that support is\n");

@@ -646,6 +646,9 @@ VOID ReadConfig(CHAR16 *FileName)
         } else if (MyStriCmp(TokenList[0], L"scan_delay") && (TokenCount == 2)) {
             HandleInt(TokenList, TokenCount, &(GlobalConfig.ScanDelay));
 
+        } else if (MyStriCmp(TokenList[0], L"log_direct") && (TokenCount == 2)) {
+            GlobalConfig.LogDirect = HandleBoolean(TokenList, TokenCount);
+
         } else if (MyStriCmp(TokenList[0], L"log_level") && (TokenCount == 2)) {
             HandleInt(TokenList, TokenCount, &(GlobalConfig.LogLevel));
 
@@ -1034,7 +1037,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
         if (MyStriCmp(TokenList[0], L"loader") && (TokenCount > 1)) { // set the boot loader filename
             LOG(4, LOG_LINE_NORMAL, L"loader: %s", TokenList[1]);
             Entry->LoaderPath = StrDuplicate(TokenList[1]);
-            LOG(1, LOG_LINE_NORMAL, L"Adding manual loader for '%s'", Entry->LoaderPath);
+            LOG(3, LOG_LINE_NORMAL, L"Adding manual loader for '%s'", Entry->LoaderPath);
             DefaultsSet = TRUE;
 
         } else if (MyStriCmp(TokenList[0], L"volume") && (TokenCount > 1)) {
@@ -1074,7 +1077,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
                 if (Entry->me.Image != NULL) {
                     LOG(3, LOG_LINE_NORMAL, L"Icon %s found in one of icon directories", TokenList[1]);
                 } else {
-                    LOG(1, LOG_LINE_NORMAL, L"Icon %s not found, using dummy", TokenList[1]);
+                    LOG(2, LOG_LINE_NORMAL, L"Icon %s not found, using dummy", TokenList[1]);
                     Entry->me.Image = DummyImage(GlobalConfig.IconSizes[ICON_SIZE_BIG]);
                 }
             }
@@ -1102,7 +1105,7 @@ static LOADER_ENTRY * AddStanzaEntries(REFIT_FILE *File, REFIT_VOLUME *Volume, C
 
         } else if (MyStriCmp(TokenList[0], L"disabled")) {
             LOG(4, LOG_LINE_NORMAL, L"disabled:");
-            LOG(1, LOG_LINE_NORMAL, L"Entry is disabled");
+            LOG(2, LOG_LINE_NORMAL, L"Entry is disabled");
             Entry->Enabled = FALSE;
 
         } else if (MyStriCmp(TokenList[0], L"firmware_bootnum") && (TokenCount > 1)) {
@@ -1155,7 +1158,7 @@ VOID ScanUserConfigured(CHAR16 *FileName)
     UINTN             TokenCount, size;
     LOADER_ENTRY      *Entry;
 
-    LOG(1, LOG_LINE_THIN_SEP, L"Scanning for user-configured boot stanzas");
+    LOG(3, LOG_LINE_THIN_SEP, L"Scanning for user-configured boot stanzas");
     if (FileExists(SelfDir, FileName)) {
         Status = ReadFile(SelfDir, FileName, &File, &size);
         if (EFI_ERROR(Status))
