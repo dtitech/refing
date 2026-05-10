@@ -390,7 +390,7 @@ EFI_STATUS CreateVarsDir(VOID) {
     EFI_FILE_HANDLE  EspRootDir;
 
     if (gVarsDir == NULL) {
-        LOG(3, LOG_LINE_NORMAL, L"Trying to create a 'vars' directory in which to hold variables");
+        LOG(3, LOG_LINE_NORMAL, L"[CreateVarsDir] Trying to create a 'vars' directory in which to hold variables");
         Status = refit_call5_wrapper(SelfDir->Open, SelfDir, &gVarsDir, L"vars",
                                      EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
                                      EFI_FILE_DIRECTORY);
@@ -398,7 +398,7 @@ EFI_STATUS CreateVarsDir(VOID) {
             Status = egFindESP(&EspRootDir);
             if (Status == EFI_SUCCESS) {
                 LOG(3, LOG_LINE_NORMAL,
-                    L"Trying to create a 'refind-vars' directory on the ESP in which to hold variables");
+                    L"[CreateVarsDir] Trying to create a 'refind-vars' directory on the ESP in which to hold variables");
                 Status = refit_call5_wrapper(EspRootDir->Open, EspRootDir, &gVarsDir, L"refind-vars",
                                              EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE,
                                              EFI_FILE_DIRECTORY);
@@ -407,8 +407,8 @@ EFI_STATUS CreateVarsDir(VOID) {
     }
     if (EFI_ERROR(Status)) {
         GlobalConfig.UseNvram = TRUE;
-        LOG(2, LOG_LINE_NORMAL, L"Unable to create a directory in which to hold variables; error %d", Status);
-        LOG(2, LOG_LINE_NORMAL, L"Falling back to NVRAM-based storage");
+        LOG(2, LOG_LINE_NORMAL, L"[CreateVarsDir] Unable to create a directory in which to hold variables; error %d", Status);
+        LOG(2, LOG_LINE_NORMAL, L"[CreateVarsDir] Falling back to NVRAM-based storage");
     }
     return Status;
 } // EFI_STATUS FindVarsDir()
@@ -425,7 +425,7 @@ EFI_STATUS EfivarGetRaw(IN EFI_GUID *vendor, IN CHAR16 *name, OUT CHAR8 **buffer
     if ((GlobalConfig.UseNvram == FALSE) && GuidsAreEqual(vendor, &RefindGuid)) {
         ReadFromNvram = FALSE;
     }
-    LOG(3, LOG_LINE_NORMAL, L"Getting EFI variable '%s' from %s", name,
+    LOG(3, LOG_LINE_NORMAL, L"[EfivarGetRaw] Getting variable '%s' from %s", name,
         ReadFromNvram ? L"NVRAM" : L"disk");
 
     if (!ReadFromNvram) {
@@ -454,7 +454,7 @@ EFI_STATUS EfivarGetRaw(IN EFI_GUID *vendor, IN CHAR16 *name, OUT CHAR8 **buffer
         // Note: "Errors" here are common because of attempts to read
         // non-existent variables, like Hidden* variables if they haven't
         // been set. Hence, log at level 3, not 1.
-        LOG(3, LOG_LINE_NORMAL, L"Error retrieving EFI variable '%s'", name);
+        LOG(2, LOG_LINE_NORMAL, L"[EfivarGerRaw] Error retrieving variable '%s'", name);
         MyFreePool(buf);
         *buffer = NULL;
         *size = 0;
@@ -480,7 +480,7 @@ EFI_STATUS EfivarSetRaw(EFI_GUID *vendor, CHAR16 *name, CHAR8 *buf, UINTN size, 
         WriteToNvram = FALSE;
 
     OldStatus = EfivarGetRaw(vendor, name, &OldBuf, &OldSize);
-    LOG(2, LOG_LINE_NORMAL, L"Saving EFI variable '%s' to %s", name,
+    LOG(3, LOG_LINE_NORMAL, L"[EfivarSetRaw] Saving variable '%s' to %s", name,
         WriteToNvram ? L"NVRAM" : L"disk");
     if ((EFI_ERROR(OldStatus)) || (size != OldSize) || (CompareMem(buf, OldBuf, size) != 0)) {
         if (!WriteToNvram) {
@@ -499,15 +499,15 @@ EFI_STATUS EfivarSetRaw(EFI_GUID *vendor, CHAR16 *name, CHAR8 *buf, UINTN size, 
             Status = refit_call5_wrapper(RT->SetVariable, name, vendor, flags, size, buf);
         }
     } else {
-        LOG(2, LOG_LINE_NORMAL, L"Not writing variable '%s'; it's unchanged", name);
+        LOG(3, LOG_LINE_NORMAL, L"[EfivarSetRaw] Not writing variable '%s'; it's unchanged", name);
     }
     if (OldStatus == EFI_SUCCESS) {
-        LOG(4, LOG_LINE_NORMAL, L"Freeing OldBuf");
+        LOG(4, LOG_LINE_NORMAL, L"[EfivarSetRaw] Freeing OldBuf");
         MyFreePool(OldBuf);
-        LOG(4, LOG_LINE_NORMAL, L"Have freed OldBuf");
+        LOG(4, LOG_LINE_NORMAL, L"[EfivarSetRaw] Have freed OldBuf");
     }
     if (EFI_ERROR(Status))
-        LOG(1, LOG_LINE_NORMAL, L"Error %d when writing EFI variable '%s'", Status, name);
+        LOG(2, LOG_LINE_NORMAL, L"[EfivarSetRaw] Error %d when writing variable '%s'", Status, name);
 
     return Status;
 } // EFI_STATUS EfivarSetRaw()
@@ -518,16 +518,18 @@ EFI_STATUS EfivarSetRaw(EFI_GUID *vendor, CHAR16 *name, CHAR8 *buf, UINTN size, 
 
 VOID AddListElement(IN OUT VOID ***ListPtr, IN OUT UINTN *ElementCount, IN VOID *NewElement)
 {
-    UINTN AllocateCount;
-
     if ((*ElementCount & 15) == 0) {
-        AllocateCount = *ElementCount + 16;
+        const UINTN AllocateCount = *ElementCount + 16;
+        const UINTN NewSize = sizeof(VOID *) * AllocateCount;
+
         if (*ElementCount == 0) {
-            *ListPtr = AllocatePool(sizeof(VOID *) * AllocateCount);
-            LOG(2, LOG_LINE_NORMAL, L"Allocating memory in AddListElement()");
+            LOG(4, LOG_LINE_NORMAL, L"[AddListElement] Allocating memory %lu", NewSize);
+            *ListPtr = AllocatePool(NewSize);
         } else {
-            LOG(2, LOG_LINE_NORMAL, L"Reallocating memory in AddListElement(); *ElementCount is %ld", *ElementCount);
-            *ListPtr = EfiReallocatePool(*ListPtr, sizeof(VOID *) * (*ElementCount), sizeof(VOID *) * AllocateCount);
+            const UINTN OldSize = sizeof(VOID *) * (*ElementCount);
+            LOG(4, LOG_LINE_NORMAL, L"[AddListElement] ElementCount is %ld", *ElementCount);
+            LOG(4, LOG_LINE_NORMAL, L"[AddListElement] Reallocating memory from %lu to %lu", OldSize, NewSize);
+            *ListPtr = EfiReallocatePool(*ListPtr, OldSize, NewSize);
         }
     }
     (*ListPtr)[*ElementCount] = NewElement;
@@ -608,19 +610,26 @@ static CHAR16 *FSTypeName(IN UINT32 TypeCode) {
 static VOID SetFilesystemName(REFIT_VOLUME *Volume) {
     EFI_FILE_SYSTEM_INFO    *FileSystemInfoPtr = NULL;
 
+    LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemName] Looking for filesystem name....");
+
     if ((Volume) && (Volume->RootDir != NULL)) {
         FileSystemInfoPtr = LibFileSystemInfo(Volume->RootDir);
      }
 
     if ((FileSystemInfoPtr != NULL) &&
         (StrLen(FileSystemInfoPtr->VolumeLabel) > 0)) {
+        LOG(3, LOG_LINE_NORMAL, L"[SetFilesystemName] Found '%s'", FileSystemInfoPtr->VolumeLabel);
         if (Volume->FsName) {
             MyFreePool(Volume->FsName);
             Volume->FsName = NULL;
         }
         Volume->FsName = StrDuplicate(FileSystemInfoPtr->VolumeLabel);
+    } else {
+        LOG(3, LOG_LINE_NORMAL, L"[SetFilesystemName] Not found");
     }
     MyFreePool(FileSystemInfoPtr);
+
+    LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemName] End");
 } // VOID *SetFilesystemName()
 
 // Identify the filesystem type and record the filesystem's UUID/serial number,
@@ -639,7 +648,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
     UINT16       *Magic16;
     char         *MagicString;
 
-    LOG(2, LOG_LINE_NORMAL, L"Identifying filesystem types....");
+    LOG(3, LOG_LINE_NORMAL, L"[SetFilesystemData] Identifying filesystem types....");
     if ((Buffer != NULL) && (Volume != NULL)) {
         ZeroMem(&(Volume->VolUuid), sizeof(EFI_GUID));
         Volume->FSType = FS_TYPE_UNKNOWN;
@@ -650,13 +659,13 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
                 Ext2Compat = (UINT32*) (Buffer + 1024 + 92);
                 Ext2Incompat = (UINT32*) (Buffer + 1024 + 96);
                 if ((*Ext2Incompat & 0x0040) || (*Ext2Incompat & 0x0200)) { // check for extents or flex_bg
-                    LOG(4, LOG_LINE_NORMAL, L"Found ext4fs");
+                    LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found ext4");
                     Volume->FSType = FS_TYPE_EXT4;
                 } else if (*Ext2Compat & 0x0004) { // check for journal
-                    LOG(4, LOG_LINE_NORMAL, L"Found ext3fs");
+                    LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found ext3");
                     Volume->FSType = FS_TYPE_EXT3;
                 } else { // none of these features; presume it's ext2...
-                    LOG(4, LOG_LINE_NORMAL, L"Found ext2fs");
+                    LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found ext2");
                     Volume->FSType = FS_TYPE_EXT2;
                 }
                 MyCopyMem(&(Volume->VolUuid), Buffer + 1024 + 104, sizeof(EFI_GUID));
@@ -669,7 +678,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
             if ((CompareMem(MagicString, REISERFS_SUPER_MAGIC_STRING, 8) == 0) ||
                 (CompareMem(MagicString, REISER2FS_SUPER_MAGIC_STRING, 9) == 0) ||
                 (CompareMem(MagicString, REISER2FS_JR_SUPER_MAGIC_STRING, 9) == 0)) {
-                    LOG(4, LOG_LINE_NORMAL, L"Found ReiserFS");
+                    LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found ReiserFS");
                     Volume->FSType = FS_TYPE_REISERFS;
                     MyCopyMem(&(Volume->VolUuid), Buffer + 65536 + 84, sizeof(EFI_GUID));
                     return;
@@ -679,7 +688,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
         if (BufferSize >= (65536 + 64 + 8)) {
             MagicString = (char*) (Buffer + 65536 + 64);
             if (CompareMem(MagicString, BTRFS_SIGNATURE, 8) == 0) {
-                LOG(4, LOG_LINE_NORMAL, L"Found Btrfs");
+                LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found Btrfs");
                 Volume->FSType = FS_TYPE_BTRFS;
                 return;
             } // if
@@ -688,7 +697,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
         if (BufferSize >= 512) {
             MagicString = (char*) Buffer;
             if (CompareMem(MagicString, XFS_SIGNATURE, 4) == 0) {
-                LOG(4, LOG_LINE_NORMAL, L"Found XFS");
+                LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found XFS");
                 Volume->FSType = FS_TYPE_XFS;
                 return;
             }
@@ -697,7 +706,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
         if (BufferSize >= (32768 + 4)) {
             MagicString = (char*) (Buffer + 32768);
             if (CompareMem(MagicString, JFS_SIGNATURE, 4) == 0) {
-                LOG(4, LOG_LINE_NORMAL, L"Found JFS");
+                LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found JFS");
                 Volume->FSType = FS_TYPE_JFS;
                 return;
             }
@@ -706,7 +715,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
         if (BufferSize >= (1024 + 2)) {
             Magic16 = (UINT16*) (Buffer + 1024);
             if ((*Magic16 == HFSPLUS_MAGIC1) || (*Magic16 == HFSPLUS_MAGIC2)) {
-                LOG(4, LOG_LINE_NORMAL, L"Found HFS+");
+                LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found HFS+");
                 Volume->FSType = FS_TYPE_HFSPLUS;
                 return;
             }
@@ -721,20 +730,20 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
            if (*Magic16 == FAT_MAGIC) {
                MagicString = (char*) Buffer;
                if (CompareMem(MagicString + 3, NTFS_SIGNATURE, 8) == 0) {
-                   LOG(4, LOG_LINE_NORMAL, L"Found NTFS");
+                   LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found NTFS");
                    Volume->FSType = FS_TYPE_NTFS;
                    MyCopyMem(&(Volume->VolUuid), Buffer + 0x48, sizeof(UINT64));
                } else if ((CompareMem(MagicString + 0x36, FAT12_SIGNATURE, 8) == 0) ||
                           (CompareMem(MagicString + 0x36, FAT16_SIGNATURE, 8) == 0)) {
-                   LOG(4, LOG_LINE_NORMAL, L"Found FAT12 or FAT16");
+                   LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found FAT12 or FAT16");
                    Volume->FSType = FS_TYPE_FAT;
                    MyCopyMem(&(Volume->VolUuid), Buffer + 0x27, sizeof(UINT32));
                } else if (CompareMem(MagicString + 0x52, FAT32_SIGNATURE, 8) == 0) {
-                   LOG(4, LOG_LINE_NORMAL, L"Found FAT32");
+                   LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found FAT32");
                    Volume->FSType = FS_TYPE_FAT;
                    MyCopyMem(&(Volume->VolUuid), Buffer + 0x43, sizeof(UINT32));
                } else if (!Volume->BlockIO->Media->LogicalPartition) {
-                   LOG(4, LOG_LINE_NORMAL, L"Found disk boot sector/MBR");
+                   LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found disk boot sector/MBR");
                    Volume->FSType = FS_TYPE_WHOLEDISK;
                } // if/else
                return;
@@ -744,7 +753,7 @@ static VOID SetFilesystemData(IN UINT8 *Buffer, IN UINTN BufferSize, IN OUT REFI
         // If no other filesystem is identified and block size is right, assume
         // it's ISO-9660....
         if (Volume->BlockIO->Media->BlockSize == 2048) {
-            LOG(4, LOG_LINE_NORMAL, L"Found ISO-9660");
+            LOG(4, LOG_LINE_NORMAL, L"[SetFilesystemData] Found ISO-9660");
             Volume->FSType = FS_TYPE_ISO9660;
             return;
         }
@@ -758,7 +767,7 @@ static VOID ScanVolumeBootcode(REFIT_VOLUME *Volume, BOOLEAN *Bootable)
     EFI_STATUS              Status;
     UINT8                   Buffer[SAMPLE_SIZE];
 
-    LOG(2, LOG_LINE_NORMAL, L"Entering ScanVolumeBootcode()");
+    LOG(3, LOG_LINE_NORMAL, L"[ScanVolumeBootcode] Enter");
     Volume->HasBootCode = FALSE;
     Volume->OSIconName = NULL;
     Volume->OSName = NULL;
@@ -774,7 +783,7 @@ static VOID ScanVolumeBootcode(REFIT_VOLUME *Volume, BOOLEAN *Bootable)
                                  Volume->BlockIO, Volume->BlockIO->Media->MediaId,
                                  Volume->BlockIOOffset, SAMPLE_SIZE, Buffer);
     if (EFI_ERROR(Status)) {
-        LOG(3, LOG_LINE_NORMAL, L"Error %d reading boot sector of '%s'", Status, Volume->VolName);
+        LOG(2, LOG_LINE_NORMAL, L"[ScanVolumeBootcode] Error %d reading boot sector of '%s'", Status, Volume->VolName);
     } else {
         SetFilesystemData(Buffer, SAMPLE_SIZE, Volume);
     }
@@ -878,7 +887,7 @@ static VOID ScanVolumeBootcode(REFIT_VOLUME *Volume, BOOLEAN *Bootable)
         // NOTE: If you add an operating system with a name that starts with 'W' or 'L', you
         //  need to fix AddLegacyEntry in refind/legacy.c.
 
-        LOG(3, LOG_LINE_NORMAL, L"Result of bootcode detection: %s %s (%s)",
+        LOG(3, LOG_LINE_NORMAL, L"[ScanVolumeBootcode] Result of bootcode detection: %s %s (%s)",
             Volume->HasBootCode ? L"bootable" : L"non-bootable", Volume->OSName,
             Volume->OSIconName);
 
@@ -911,6 +920,8 @@ static VOID ScanVolumeBootcode(REFIT_VOLUME *Volume, BOOLEAN *Bootable)
 
     }
 #endif
+
+    LOG(3, LOG_LINE_NORMAL, L"[ScanVolumeBootcode] End");
 } /* VOID ScanVolumeBootcode() */
 
 // Set default volume badge icon based on /.VolumeBadge.{icns|png} file or disk kind
@@ -982,16 +993,18 @@ static CHAR16 *GetVolumeName(REFIT_VOLUME *Volume) {
     CHAR16                  *FoundName = NULL;
     CHAR16                  *SISize, *TypeName;
 
+    LOG(4, LOG_LINE_NORMAL, L"[GetVolumeName] Looking for volume name...");
+
     if ((Volume->FsName) && (StrLen(Volume->FsName) > 0)) {
         FoundName = StrDuplicate(Volume->FsName);
-        LOG(3, LOG_LINE_NORMAL, L"Setting volume name to filesystem name of '%s'", FoundName);
+        LOG(3, LOG_LINE_NORMAL, L"[GetVolumeName] Setting volume name to filesystem name of '%s'", FoundName);
     }
 
     // If no filesystem name, try to use the partition name....
     if ((FoundName == NULL) && (Volume->PartName) && (StrLen(Volume->PartName) > 0) &&
         !IsIn(Volume->PartName, IGNORE_PARTITION_NAMES)) {
         FoundName = StrDuplicate(Volume->PartName);
-        LOG(3, LOG_LINE_NORMAL, L"Setting volume name to partition name of '%s'", FoundName);
+        LOG(3, LOG_LINE_NORMAL, L"[GetVolumeName] Setting volume name to partition name of '%s'", FoundName);
     } // if use partition name
 
     // No filesystem or acceptable partition name, so use fs type and size
@@ -1003,7 +1016,7 @@ static CHAR16 *GetVolumeName(REFIT_VOLUME *Volume) {
             SISize = SizeInIEEEUnits(FileSystemInfoPtr->VolumeSize);
             FoundName = PoolPrint(L"%s%s volume", SISize, FSTypeName(Volume->FSType));
             MyFreePool(SISize);
-            LOG(3, LOG_LINE_NORMAL, L"Setting volume name to filesystem description of '%s'", FoundName);
+            LOG(3, LOG_LINE_NORMAL, L"[GetVolumeName] Setting volume name to filesystem description of '%s'", FoundName);
             MyFreePool(FileSystemInfoPtr);
         }
     } // if (FoundName == NULL)
@@ -1014,12 +1027,14 @@ static CHAR16 *GetVolumeName(REFIT_VOLUME *Volume) {
             FoundName = PoolPrint(L"%s volume", TypeName);
         else
             FoundName = StrDuplicate(L"unknown volume");
-        LOG(3, LOG_LINE_NORMAL, L"Setting volume name to generic description of '%s'", FoundName);
+        LOG(3, LOG_LINE_NORMAL, L"[GetVolumeName] Setting volume name to generic description of '%s'", FoundName);
     } // if
 
     // TODO: Above could be improved/extended, in case filesystem name is not found,
     // such as:
     //  - use or add disk/partition number (e.g., "(hd0,2)")
+
+    LOG(4, LOG_LINE_NORMAL, L"[GetVolumeName] End");
 
     return FoundName;
 } // static CHAR16 *GetVolumeName()
@@ -1082,7 +1097,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
     UINTN                   PartialLength;
     BOOLEAN                 Bootable;
 
-    LOG(2, LOG_LINE_NORMAL, L"Entering ScanVolume()");
+    LOG(3, LOG_LINE_NORMAL, L"[ScanVolume] Begin");
     // get device path
     Volume->DevicePath = DuplicateDevicePath(DevicePathFromHandle(Volume->DeviceHandle));
 
@@ -1092,8 +1107,8 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
     Status = refit_call3_wrapper(BS->HandleProtocol, Volume->DeviceHandle, &BlockIoProtocol, (VOID **) &(Volume->BlockIO));
     if (EFI_ERROR(Status)) {
         Volume->BlockIO = NULL;
-        Print(L"Warning: Can't get BlockIO protocol.\n");
-        LOG(2, LOG_LINE_NORMAL, L"Warning: Can't get BlockIO protocol in ScanVolume()");
+        Print(L"[ScanVolume] Warning: Can't get BlockIO protocol.\n");
+        LOG(2, LOG_LINE_NORMAL, L"[ScanVolume] Warning: Can't get BlockIO protocol in ScanVolume()");
     } else {
         if (Volume->BlockIO->Media->BlockSize == 2048)
             Volume->DiskKind = DISK_KIND_OPTICAL;
@@ -1103,6 +1118,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
     Bootable = FALSE;
     ScanVolumeBootcode(Volume, &Bootable);
 
+    LOG(4, LOG_LINE_NORMAL, L"[ScanVolume] Detecting device type");
     // detect device type
     DevicePath = Volume->DevicePath;
     while (DevicePath != NULL && !IsDevicePathEndType(DevicePath)) {
@@ -1141,7 +1157,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
                 Status = refit_call3_wrapper(BS->HandleProtocol, WholeDiskHandle,
                                              &DevicePathProtocol, (VOID **) &DiskDevicePath);
                 if (EFI_ERROR(Status)) {
-                    LOG(2, LOG_LINE_NORMAL, L"Could not get DiskDevicePath for volume");
+                    LOG(2, LOG_LINE_NORMAL, L"[ScanVolume] Could not get DiskDevicePath for volume");
                 } else {
                     Volume->WholeDiskDevicePath = DuplicateDevicePath(DiskDevicePath);
                 }
@@ -1150,7 +1166,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
                 Status = refit_call3_wrapper(BS->HandleProtocol, WholeDiskHandle, &BlockIoProtocol,
                                              (VOID **) &Volume->WholeDiskBlockIO);
                 if (EFI_ERROR(Status)) {
-                    LOG(2, LOG_LINE_NORMAL, L"Could not get WholeDiskBlockIO for volume");
+                    LOG(2, LOG_LINE_NORMAL, L"[ScanVolume] Could not get WholeDiskBlockIO for volume");
                     Volume->WholeDiskBlockIO = NULL;
                     //CheckError(Status, L"from HandleProtocol");
                 } else {
@@ -1159,7 +1175,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
                         Volume->DiskKind = DISK_KIND_OPTICAL;
                 }
             } else {
-                LOG(2, LOG_LINE_NORMAL, L"Could not locate device path for volume");
+                LOG(2, LOG_LINE_NORMAL, L"[ScanVolume] Could not locate device path for volume");
             }
         }
 
@@ -1168,8 +1184,12 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
 
     if (!Bootable) {
         if (Volume->HasBootCode)
-            LOG(2, LOG_LINE_NORMAL, L"Volume considered non-bootable, but boot code is present");
+            LOG(4, LOG_LINE_NORMAL, L"[ScanVolume] Non-Bootable, but boot code is present");
+        else
+            LOG(4, LOG_LINE_NORMAL, L"[ScanVolume] Non-Bootable");
         Volume->HasBootCode = FALSE;
+    } else {
+        LOG(4, LOG_LINE_NORMAL, L"[ScanVolume] Bootable");
     }
 
     // open the root directory of the volume
@@ -1179,9 +1199,11 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
     Volume->VolName = GetVolumeName(Volume);
 
     if (Volume->RootDir == NULL) {
+        LOG(4, LOG_LINE_NORMAL, L"[ScanVolume] Readable");
         Volume->IsReadable = FALSE;
         return;
     } else {
+        LOG(4, LOG_LINE_NORMAL, L"[ScanVolume] Non-Readable");
         Volume->IsReadable = TRUE;
         if ((GlobalConfig.LegacyType == LEGACY_TYPE_MAC) &&
             (Volume->FSType == FS_TYPE_NTFS) &&
@@ -1192,6 +1214,7 @@ VOID ScanVolume(REFIT_VOLUME *Volume)
         }
     } // if/else
 
+    LOG(3, LOG_LINE_NORMAL, L"[ScanVolume] End");
 } // ScanVolume()
 
 static VOID ScanExtendedPartition(REFIT_VOLUME *WholeDiskVolume, MBR_PARTITION_INFO *MbrEntry)
