@@ -1671,14 +1671,17 @@ VOID ScanForTools(VOID) {
     CHAR8 *b = 0;
     UINT32 CsrValue;
 
-    LOG(3, LOG_LINE_SEPARATOR, L"Scanning for tools");
+    LOG(3, LOG_LINE_SEPARATOR, L"ScanForTools");
     if (!IsIn(GlobalConfig.ExtraToolLocations, SelfDirPath))
         MergeStrings(&GlobalConfig.ExtraToolLocations, SelfDirPath, L',');
 
     AllToolLocations = StrDuplicate(GlobalConfig.ToolLocations);
     MergeStrings(&AllToolLocations, GlobalConfig.ExtraToolLocations, L',');
     for (i = 0; i < NUM_TOOLS; i++) {
-        LOG(4, LOG_LINE_NORMAL, L"ShowTools[%u]: %u", i, GlobalConfig.ShowTools[i]);
+        // Terminate when 0 tag
+        if (GlobalConfig.ShowTools[i] == 0)
+            break;
+        LOG(4, LOG_LINE_NORMAL, L"[ScanForTools] ShowTools[%u] = %u", i, GlobalConfig.ShowTools[i]);
 
         switch(GlobalConfig.ShowTools[i]) {
             // NOTE: Be sure that FileName is NULL at the end of each case.
@@ -1824,5 +1827,5 @@ VOID ScanForTools(VOID) {
         } // switch()
     } // for
     MyFreePool(AllToolLocations);
-    LOG(2, LOG_LINE_NORMAL, L"Done scanning for tools");
+    LOG(3, LOG_LINE_NORMAL, L"[ScanForTools] End");
 } // VOID ScanForTools
