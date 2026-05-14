@@ -691,7 +691,7 @@ VOID ReadConfig(CHAR16 *FileName)
             HandleStrings(TokenList, TokenCount, &(GlobalConfig.DriverDirs));
 
         } else if (MyStriCmp(TokenList[0], L"showtools")) {
-            ZeroMem(GlobalConfig.ShowTools, NUM_TOOLS * sizeof(UINTN));
+            memset(GlobalConfig.ShowTools, 0, NUM_TOOLS * sizeof(UINTN));
             GlobalConfig.HiddenTags = FALSE;
             for (i = 1; (i < TokenCount) && (i < NUM_TOOLS); i++) {
                 FlagName = TokenList[i];

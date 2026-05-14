@@ -109,7 +109,7 @@ EfiStrDuplicate (
   Size  = StrSize (Src); //at least 2bytes
   Dest  = AllocateZeroPool (Size);
   if (Dest != NULL) {
-    CopyMem (Dest, Src, Size);
+    memcpy(Dest, Src, Size);
   }
 
   return Dest;
@@ -189,7 +189,7 @@ EfiReallocatePool (
 
   if (OldPool != NULL) {
     if (NewPool != NULL) {
-      CopyMem (NewPool, OldPool, OldSize < NewSize ? OldSize : NewSize);
+      memcpy(NewPool, OldPool, OldSize < NewSize ? OldSize : NewSize);
     }
 
     FreePool (OldPool);

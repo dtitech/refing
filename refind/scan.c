@@ -147,7 +147,7 @@ static REFIT_MENU_SCREEN* CopyMenuScreen(REFIT_MENU_SCREEN *Entry) {
         if (Entry->TitleImage != NULL) {
             NewEntry->TitleImage = AllocatePool(sizeof(EG_IMAGE));
             if (NewEntry->TitleImage != NULL)
-                MyCopyMem(NewEntry->TitleImage, Entry->TitleImage, sizeof(EG_IMAGE));
+                memcpy(NewEntry->TitleImage, Entry->TitleImage, sizeof(EG_IMAGE));
         } // if
         NewEntry->InfoLineCount = Entry->InfoLineCount;
         NewEntry->InfoLines = (CHAR16**) AllocateZeroPool(Entry->InfoLineCount * (sizeof(CHAR16*)));
@@ -177,17 +177,17 @@ static REFIT_MENU_ENTRY* CopyMenuEntry(REFIT_MENU_ENTRY *Entry) {
 
     NewEntry = AllocateZeroPool(sizeof(REFIT_MENU_ENTRY));
     if ((Entry != NULL) && (NewEntry != NULL)) {
-        MyCopyMem(NewEntry, Entry, sizeof(REFIT_MENU_ENTRY));
+        memcpy(NewEntry, Entry, sizeof(REFIT_MENU_ENTRY));
         NewEntry->Title = (Entry->Title) ? StrDuplicate(Entry->Title) : NULL;
         if (Entry->BadgeImage != NULL) {
             NewEntry->BadgeImage = AllocatePool(sizeof(EG_IMAGE));
             if (NewEntry->BadgeImage != NULL)
-                MyCopyMem(NewEntry->BadgeImage, Entry->BadgeImage, sizeof(EG_IMAGE));
+                memcpy(NewEntry->BadgeImage, Entry->BadgeImage, sizeof(EG_IMAGE));
         }
         if (Entry->Image != NULL) {
             NewEntry->Image = AllocatePool(sizeof(EG_IMAGE));
             if (NewEntry->Image != NULL)
-                MyCopyMem(NewEntry->Image, Entry->Image, sizeof(EG_IMAGE));
+                memcpy(NewEntry->Image, Entry->Image, sizeof(EG_IMAGE));
         }
         if (Entry->SubScreen != NULL) {
             NewEntry->SubScreen = CopyMenuScreen(Entry->SubScreen);
@@ -1177,7 +1177,7 @@ static VOID ScanNetboot() {
             Location = RuniPXEDiscover(SelfVolume->DeviceHandle);
             if (Location != NULL && FileExists(SelfVolume->RootDir, iPXEFileName)) {
                 NetVolume = AllocatePool(sizeof(REFIT_VOLUME));
-                MyCopyMem(NetVolume, SelfVolume, sizeof(REFIT_VOLUME));
+                memcpy(NetVolume, SelfVolume, sizeof(REFIT_VOLUME));
                 NetVolume->DiskKind = DISK_KIND_NET;
                 NetVolume->VolBadgeImage = BuiltinIcon(BUILTIN_ICON_VOL_NET);
                 NetVolume->PartName = NetVolume->VolName = NetVolume->FsName = NULL;

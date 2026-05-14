@@ -7,7 +7,6 @@
  */
 
 #include "../refind/lib.h"
-#include "../libeg/lodepng.h"
 #include "../refind/log.h"
 
 #define malloc AllocatePool

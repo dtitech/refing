@@ -47,7 +47,6 @@ BdsLibConnectDevicePath (
   EFI_DEVICE_PATH_PROTOCOL  *RemainingDevicePath;
   EFI_DEVICE_PATH_PROTOCOL  *Next;
   EFI_HANDLE                Handle;
-  EFI_HANDLE                PreviousHandle;
   UINTN                     Size;
 
   if (DevicePathToConnect == NULL) {
@@ -83,7 +82,6 @@ BdsLibConnectDevicePath (
     //
     // Start the real work of connect with RemainingDevicePath
     //
-    PreviousHandle = NULL;
     do {
       //
       // Find the handle that best matches the Device Path. If it is only a
@@ -95,7 +93,6 @@ BdsLibConnectDevicePath (
 
       if (!EFI_ERROR (Status)) {
         if (!EFI_ERROR (Status)) {
-          PreviousHandle = Handle;
           //
           // Connect all drivers that apply to Handle and RemainingDevicePath,
           // the Recursive flag is FALSE so only one level will be expanded.
@@ -221,16 +218,16 @@ BdsLibVariableToOption (
   Option->Signature   = BDS_LOAD_OPTION_SIGNATURE;
   Option->DevicePath  = AllocateZeroPool (GetDevicePathSize (DevicePath));
   ASSERT(Option->DevicePath != NULL);
-  CopyMem (Option->DevicePath, DevicePath, GetDevicePathSize (DevicePath));
+  memcpy(Option->DevicePath, DevicePath, GetDevicePathSize(DevicePath));
 
   Option->Attribute   = Attribute;
   Option->Description = AllocateZeroPool (StrSize (Description));
   ASSERT(Option->Description != NULL);
-  CopyMem (Option->Description, Description, StrSize (Description));
+  memcpy(Option->Description, Description, StrSize(Description));
 
   Option->LoadOptions = AllocateZeroPool (LoadOptionsSize);
   ASSERT(Option->LoadOptions != NULL);
-  CopyMem (Option->LoadOptions, LoadOptions, LoadOptionsSize);
+  memcpy(Option->LoadOptions, LoadOptions, LoadOptionsSize);
   Option->LoadOptionsSize = LoadOptionsSize;
 
   //

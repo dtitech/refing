@@ -24,7 +24,6 @@
 //#include "screen.h"
 //#include "menu.h"
 #include "../efilib/efilib_platform.h"
-#include "../efilib/efilib_compat.h"
 #include "../efilib/efilib_str.h"
 #include "../efilib/efilib_time.h"
 

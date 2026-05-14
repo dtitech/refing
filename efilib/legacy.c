@@ -396,8 +396,8 @@ BdsCreateLegacyBootOption (
   if (NewBbsDevPathNode == NULL) {
     return EFI_OUT_OF_RESOURCES;
   }
-  CopyMem (NewBbsDevPathNode, CurrentBbsDevPath, sizeof (BBS_BBS_DEVICE_PATH));
-  CopyMem (NewBbsDevPathNode->String, HelpString, StringLen + 1);
+  memcpy(NewBbsDevPathNode, CurrentBbsDevPath, sizeof(BBS_BBS_DEVICE_PATH));
+  memcpy(NewBbsDevPathNode->String, HelpString, StringLen + 1);
   SetDevicePathNodeLength (&(NewBbsDevPathNode->Header), sizeof (BBS_BBS_DEVICE_PATH) + StringLen);
 
   //
@@ -436,25 +436,13 @@ BdsCreateLegacyBootOption (
   *((UINT16 *) Ptr) = CurrentBbsDevPathSize;
   Ptr += sizeof (UINT16);
 
-  CopyMem (
-    Ptr,
-    BootDesc,
-    StrSize (BootDesc)
-    );
+  memcpy(Ptr, BootDesc, StrSize(BootDesc));
   Ptr += StrSize (BootDesc);
 
-  CopyMem (
-    Ptr,
-    CurrentBbsDevPath,
-    CurrentBbsDevPathSize
-    );
+  memcpy(Ptr, CurrentBbsDevPath, CurrentBbsDevPathSize);
   Ptr += CurrentBbsDevPathSize;
 
-  CopyMem (
-    Ptr,
-    CurrentBbsEntry,
-    sizeof (BBS_TABLE)
-    );
+  memcpy(Ptr, CurrentBbsEntry, sizeof(BBS_TABLE));
 
   Ptr += sizeof (BBS_TABLE);
   *((UINT16 *) Ptr) = (UINT16) Index;
@@ -473,7 +461,7 @@ BdsCreateLegacyBootOption (
   }
 
   if (*BootOrderList != NULL) {
-    CopyMem (NewBootOrderList, *BootOrderList, *BootOrderListSize);
+    memcpy(NewBootOrderList, *BootOrderList, *BootOrderListSize);
     MyFreePool (*BootOrderList);
   }
 
@@ -521,7 +509,7 @@ BdsCreateOneLegacyBootOption (
   BbsDevPathNode.Header.SubType = BBS_BBS_DP;
   SetDevicePathNodeLength (&BbsDevPathNode.Header, sizeof (BBS_BBS_DEVICE_PATH));
   BbsDevPathNode.DeviceType = BbsItem->DeviceType;
-  CopyMem (&BbsDevPathNode.StatusFlag, &BbsItem->StatusFlags, sizeof (UINT16));
+  memcpy(&BbsDevPathNode.StatusFlag, &BbsItem->StatusFlags, sizeof(UINT16));
 
   DevPath = AppendDevicePathNode (
               EndDevicePath,
@@ -576,7 +564,7 @@ GroupMultipleLegacyBootOption4SameType (
   UINT16                   OptionNumber;
   UINTN                    DeviceIndex;
 
-  SetMem (DeviceTypeIndex, sizeof (DeviceTypeIndex), 0xFF);
+  memset(DeviceTypeIndex, 0xFF, sizeof(DeviceTypeIndex));
 
   for (Index = 0; Index < BootOptionCount; Index++) {
 
@@ -608,7 +596,7 @@ GroupMultipleLegacyBootOption4SameType (
       // insert the current boot option before *NextIndex, causing [*Next .. Index] shift right one position
       //
       OptionNumber = BootOption[Index];
-      CopyMem (&BootOption[*NextIndex + 1], &BootOption[*NextIndex], (Index - *NextIndex) * sizeof (UINT16));
+      memcpy(&BootOption[*NextIndex + 1], &BootOption[*NextIndex], (Index - *NextIndex) * sizeof(UINT16));
       BootOption[*NextIndex] = OptionNumber;
 
       //

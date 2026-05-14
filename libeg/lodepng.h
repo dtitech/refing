@@ -32,21 +32,14 @@ freely, subject to the following restrictions:
 #ifndef LODEPNG_H
 #define LODEPNG_H
 
-#include <string.h> /*for size_t*/
-
 // Below block of lines required for GNU-EFI and TianoCore (program hangs
 // when run without them, and associated function in lodepng_xtra.c)
 int MyStrlen(const char *InString);
 #define strlen(c) MyStrlen(c)
-#include <stdlib.h>
 #include "../include/refit_call_wrapper.h"
 #define abs(x) (((x) < 0) ? -(x) : (x))
 #include <efi.h>
 #include <efilib.h>
-VOID *MyMemSet(VOID *s, int c, size_t n);
-VOID *MyMemCpy(void *__restrict __dest, const void *__restrict __src, size_t __n);
-#define memset(s, c, n) MyMemSet(s, c, n)
-#define memcpy(d, s, n) MyMemCpy(d, s, n)
 
 extern const char* LODEPNG_VERSION_STRING;
 

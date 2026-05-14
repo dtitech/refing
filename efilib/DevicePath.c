@@ -1504,7 +1504,7 @@ DevicePathToStr (
   CHAR16                           *ToText;
   EFI_DEVICE_PATH_TO_TEXT_PROTOCOL *DevPathToText;
 
-  ZeroMem (&Str, sizeof (Str));
+  memset(&Str, 0, sizeof(Str));
 
   if (DevPath == NULL) {
     goto Done;

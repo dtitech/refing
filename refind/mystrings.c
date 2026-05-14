@@ -302,7 +302,7 @@ VOID MergeStringsL(IN OUT CHAR16 **First, IN CHAR16 *Second, UINTN Len, CHAR16 A
             } // if (AddChar)
         } // if (*First != NULL)
         if (Second != NULL) {
-            MyCopyMem(&(NewString[Length1]), Second, Len * sizeof(CHAR16));
+            memcpy(&(NewString[Length1]), Second, Len * sizeof(CHAR16));
             NewString[Length1 + Len] = 0;
         }
         MyFreePool(*First);

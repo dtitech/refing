@@ -109,8 +109,8 @@ static EFI_STATUS ActivateMbrPartition(IN EFI_BLOCK_IO *BlockIO, IN UINTN Partit
     }
     if (!HaveBootCode) {
         // no boot code found in the MBR, add the syslinux MBR code
-        ZeroMem(SectorBuffer, MBR_BOOTCODE_SIZE);
-        MyCopyMem(SectorBuffer, syslinux_mbr, SYSLINUX_MBR_SIZE);
+        memset(SectorBuffer, 0, MBR_BOOTCODE_SIZE);
+        memcpy(SectorBuffer, syslinux_mbr, SYSLINUX_MBR_SIZE);
     }
 
     // set the partition active
@@ -608,7 +608,7 @@ static VOID ScanLegacyUEFI(IN UINTN DiskType)
 
     LOG(3, LOG_LINE_NORMAL, L"Scanning for a UEFI-style BIOS/CSM/legacy OS");
     InitializeListHead (&TempList);
-    ZeroMem (Buffer, sizeof (Buffer));
+    memset(Buffer, 0, sizeof(Buffer));
 
     // If LegacyBios protocol is not implemented on this platform, then
     //we do not support this type of legacy boot on this machine.

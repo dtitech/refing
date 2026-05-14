@@ -9,6 +9,32 @@
 #include "efilib_compat.h"
 #include "efilib_platform.h"
 
+void *__memzero(void *s, size_t n)
+{
+    char *i = (char *)s;
+    #ifdef MACHINE_64
+    while (n >= 8)
+    {
+        *(UINT64 *)i = 0;
+        i += 8;
+        n -= 8;
+    }
+    #endif
+    while (n >= 4)
+    {
+        *(UINT32 *)i = 0;
+        i += 4;
+        n -= 4;
+    }
+    while (n > 0)
+    {
+        *i = 0;
+        i++;
+        n--;
+    }
+    return s;
+}
+
 size_t strlen(const char *s) {
     char *v = (char *)s;
     while (*v != 0)
@@ -18,30 +44,14 @@ size_t strlen(const char *s) {
     return v - s;
 }
 
-/*
-void *malloc(size_t size) {
-    return AllocatePool(size);
-}
-
-void free(void * p) {
-    BS->FreePool(p);
-}
-
-void *calloc(size_t n, size_t size) {
-    VOID * Buffer = NULL;
-    if (BS->AllocatePool(AllocateAnyPages, size * n, &Buffer) == EFI_SUCCESS)
-        return Buffer;
-
-    return NULL;
-}
-*/
-
 void *memset(void * s, int c, size_t n) {
+    if (!c)
+        return __memzero(s, n);
     char *i = (char *)s;
     char *e = i + n;
     while (i < e)
     {
-	*i = 0;
+	*i = c;
 	i++;
     }
     return s;

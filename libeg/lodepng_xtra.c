@@ -70,7 +70,7 @@ void* lodepng_realloc(void *ptr, size_t new_size) {
    new_pool = lodepng_malloc(new_size);
    if (new_pool && ptr) {
       old_size = report_size(ptr);
-      MyCopyMem(new_pool, ptr, (old_size < new_size) ? old_size : new_size);
+      memcpy(new_pool, ptr, (old_size < new_size) ? old_size : new_size);
    }
    return new_pool;
 } // lodepng_realloc()
@@ -85,16 +85,6 @@ int MyStrlen(const char *InString) {
    }
    return Length;
 } // int MyStrlen()
-
-VOID *MyMemSet(VOID *s, int c, size_t n) {
-    SetMem(s, c, n);
-    return s;
-}
-
-VOID *MyMemCpy(void *__restrict __dest, const void *__restrict __src, size_t __n) {
-    MyCopyMem(__dest, __src, __n);
-    return __dest;
-}
 
 typedef struct _lode_color {
    UINT8 red;
