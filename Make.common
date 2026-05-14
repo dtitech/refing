@@ -69,7 +69,8 @@ endif
 #
 
 OPTIMFLAGS      = -Os -fno-strict-aliasing -fno-tree-loop-distribute-patterns
-CFLAGS          = $(OPTIMFLAGS) -fno-stack-protector -fshort-wchar -Wall
+GNUEFI_CFLAGS   = -DGNU_EFI_USE_MS_ABI -mabi=ms
+CFLAGS          = $(OPTIMFLAGS) $(GNUEFI_CFLAGS) -fno-stack-protector -fshort-wchar -Wall
 
 GNUEFI_CFLAGS   = -fpic -I$(EFIINC) -I$(EFIINC)/$(ARCH) -I$(EFIINC)/protocol -I../include -I../refind -I../libeg -I../mok -I../gzip
 
