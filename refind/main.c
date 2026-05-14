@@ -328,14 +328,20 @@ static VOID AdjustDefaultSelection() {
     EFI_STATUS Status;
 
     LOG(3, LOG_LINE_NORMAL, L"Adjusting default_selection with PreviousBoot values");
+    if (GlobalConfig.DefaultSelection)
+        LOG(4, LOG_LINE_NORMAL, L"DefaultSelection[OUT]: %s", GlobalConfig.DefaultSelection);
+    else
+        LOG(4, LOG_LINE_NORMAL, L"DefaultSelection[OUT]: NULL");
     while ((Element = FindCommaDelimited(GlobalConfig.DefaultSelection, i++)) != NULL) {
         if (MyStriCmp(Element, L"+")) {
             Status = EfivarGetRaw(&RefindGuid, L"PreviousBoot", (CHAR8 **) &PreviousBoot, &j);
             if (Status == EFI_SUCCESS) {
                 MyFreePool(Element);
                 Element = PreviousBoot;
+                LOG(3, LOG_LINE_NORMAL, L"PreviousBoot was '%s'", Element);
             } else {
                 Element = NULL;
+                LOG(3, LOG_LINE_NORMAL, L"PreviousBoot was not set");
             }
         } // if
         if (Element && StrLen(Element)) {
@@ -345,6 +351,10 @@ static VOID AdjustDefaultSelection() {
     } // while
     MyFreePool(GlobalConfig.DefaultSelection);
     GlobalConfig.DefaultSelection = NewCommaDelimited;
+    if (GlobalConfig.DefaultSelection)
+        LOG(4, LOG_LINE_NORMAL, L"DefaultSelection[OUT]: %s", GlobalConfig.DefaultSelection);
+    else
+        LOG(4, LOG_LINE_NORMAL, L"DefaultSelection[OUT]: NULL");
 } // AdjustDefaultSelection()
 
 // Log basic information (rEFInd version, EFI version, etc.) to the log file.

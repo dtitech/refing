@@ -574,6 +574,46 @@ EFI_STATUS egFindESP(OUT EFI_FILE_HANDLE *RootDir)
     return Status;
 }
 
+EFI_STATUS egTruncateFileOver(IN EFI_FILE_HANDLE Handle, IN UINTN Size)
+{
+    EFI_STATUS      Status;
+    EFI_GUID        FileInfoGuid = EFI_FILE_INFO_ID;
+    EFI_FILE_INFO * FileInfo = NULL;
+
+    for (;;)
+    {
+        UINTN FileInfoSz = 0;
+
+        Status = refit_call4_wrapper(Handle->GetInfo, Handle, &FileInfoGuid, &FileInfoSz, FileInfo);
+        if (Status != EFI_BUFFER_TOO_SMALL)
+            break;
+
+        FileInfo = AllocatePool(FileInfoSz);
+        if (FileInfo == NULL) {
+            Status = EFI_OUT_OF_RESOURCES;
+            break;
+        }
+
+        memset(FileInfo, 0, FileInfoSz);
+        Status = refit_call4_wrapper(Handle->GetInfo, Handle, &FileInfoGuid, &FileInfoSz, FileInfo);
+        if (Status != EFI_SUCCESS)
+            break;
+
+        if (FileInfo->FileSize > Size) // Truncate file if it is too large
+        {
+            FileInfo->FileSize = 0;
+            Status = refit_call4_wrapper(Handle->SetInfo, Handle, &FileInfoGuid, FileInfoSz, FileInfo);
+        }
+
+        break;
+    }
+
+    if (FileInfo)
+        FreePool(FileInfo);
+
+    return Status;
+}
+
 EFI_STATUS egSaveFile(IN EFI_FILE_PROTOCOL *BaseDir OPTIONAL, IN CHAR16 *FileName,
                       IN UINT8 *FileData, IN UINTN FileDataLength)
 {
@@ -593,8 +633,11 @@ EFI_STATUS egSaveFile(IN EFI_FILE_PROTOCOL *BaseDir OPTIONAL, IN CHAR16 *FileNam
         return Status;
 
     if (FileDataLength > 0) {
+        egTruncateFileOver(FileHandle, FileDataLength);
+
         BufferSize = FileDataLength;
         Status = refit_call3_wrapper(FileHandle->Write, FileHandle, &BufferSize, FileData);
+
         refit_call1_wrapper(FileHandle->Close, FileHandle);
     } else {
         Status = refit_call1_wrapper(FileHandle->Delete, FileHandle);

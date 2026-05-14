@@ -430,9 +430,11 @@ EFI_STATUS EfivarGetRaw(IN EFI_GUID *vendor, IN CHAR16 *name, OUT CHAR8 **buffer
 
     if (!ReadFromNvram) {
         Status = CreateVarsDir();
-        if (Status == EFI_SUCCESS) {
+        if (EFI_ERROR(Status) == EFI_SUCCESS)
             Status = egLoadFile(gVarsDir, name, &buf, size);
-        } else {
+
+        if (EFI_ERROR(Status) != EFI_SUCCESS) {
+            LOG(2, LOG_LINE_NORMAL, L"[EfivarGetRaw] Unable to get variable '%s' from disk, will try from NVRAM", name);
             ReadFromNvram = TRUE;
         }
     }
@@ -444,6 +446,8 @@ EFI_STATUS EfivarGetRaw(IN EFI_GUID *vendor, IN CHAR16 *name, OUT CHAR8 **buffer
             return EFI_OUT_OF_RESOURCES;
         }
         Status = refit_call5_wrapper(RT->GetVariable, name, vendor, NULL, &l, buf);
+        if (EFI_ERROR(Status) != EFI_SUCCESS)
+            LOG(2, LOG_LINE_NORMAL, L"[EfivarGetRaw] Unable to get variable '%s' from NVRAM", name);
     }
 
     if (EFI_ERROR(Status) == EFI_SUCCESS) {

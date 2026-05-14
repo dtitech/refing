@@ -1808,9 +1808,13 @@ UINTN RunMainMenu(REFIT_MENU_SCREEN *Screen, CHAR16** DefaultSelection, REFIT_ME
     TileSizes[0] = (GlobalConfig.IconSizes[ICON_SIZE_BIG] * 9) / 8;
     TileSizes[1] = (GlobalConfig.IconSizes[ICON_SIZE_SMALL] * 4) / 3;
 
+
     if ((DefaultSelection != NULL) && (*DefaultSelection != NULL)) {
+        LOG(4, LOG_LINE_NORMAL, L"DefaultSelection: %s", *DefaultSelection);
         // Find a menu entry that includes *DefaultSelection as a substring
         DefaultEntryIndex = FindMenuShortcutEntry(Screen, *DefaultSelection);
+    } else {
+        LOG(4, LOG_LINE_NORMAL, L"DefaultSelection: NULL");
     }
 
     if (AllowGraphicsMode) {
