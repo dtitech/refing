@@ -1,6 +1,6 @@
 #!/bin/bash
 # Post-installation script (run on USER'S system after installing the
-# main rEFInd package)
+# main rEFIng package)
 
 set -e
 
@@ -30,7 +30,7 @@ install_to_esp() {
     declare SBSign=`which sbsign 2> /dev/null`
     declare OpenSSL=`which openssl 2> /dev/null`
 
-    # Run the rEFInd installation script. Do so with the --shim option if
+    # Run the rEFIng installation script. Do so with the --shim option if
     # Secure Boot mode is suspected, if a shim program can be found, and if
     # Shim was used for the current boot; or without it if not. If a shim
     # installation is attempted and the sbsign and openssl programs can be
@@ -62,11 +62,11 @@ case "$1" in
     configure)
         db_get refind/install_to_esp || true;
         if [ x"$RET" = x"true" ]; then
-            echo "Installing rEFInd to the ESP..."
+            echo "Installing rEFIng to the ESP..."
             install_to_esp
         else
-            echo "** Not installing rEFInd to the ESP! **"
-            echo "If you want rEFInd to control the boot process, you can do so by runing:"
+            echo "** Not installing rEFIng to the ESP! **"
+            echo "If you want rEFIng to control the boot process, you can do so by runing:"
             echo ""
             echo "dpkg-reconfigure refind"
             echo ""
@@ -76,10 +76,10 @@ case "$1" in
     reconfigure)
         db_get refind/install_to_esp || true;
         if [ x"$RET" = x"true" ]; then
-            echo "Installing rEFInd to the ESP..."
+            echo "Installing rEFIng to the ESP..."
             install_to_esp
         else
-            echo "If rEFInd was previously configured to be your primary boot manager, you must"
+            echo "If rEFIng was previously configured to be your primary boot manager, you must"
             echo "use efibootmgr to set the computer to boot with something else."
         fi
     ;;

@@ -1,18 +1,18 @@
 NOTE
 ====
 
-The rEFInd Makefiles are complex, in order to support building in three ways
+The rEFIng Makefiles are complex, in order to support building in three ways
 (described shortly). As a consequence (and, likely, because I'm not exactly
 a Makefile guru), tracking of header files is basically non-existent.
-Therefore, if you use git to update to a later version of rEFInd, you should
-do a "make clean" before building a new version of rEFInd, to be sure any
+Therefore, if you use git to update to a later version of rEFIng, you should
+do a "make clean" before building a new version of rEFIng, to be sure any
 changed data structures are cleanly applied to all the object files that use
 them.
 
 Requirements
 ============
 
-To compile rEFInd, you'll need the following:
+To compile rEFIng, you'll need the following:
 
 * A Linux installation. Note that this installation does NOT need to be
   EFI-based. It can use IA32 (aka x86, i386, or other things), X64 (aka
@@ -23,12 +23,12 @@ To compile rEFInd, you'll need the following:
   machine. (I describe some unsupported non-Linux build options later.)
 
 * A standard set of Linux development tools, based on GCC. (I've tried
-  using Clang 3.4 under Ubuntu, with partial success. The main rEFInd
+  using Clang 3.4 under Ubuntu, with partial success. The main rEFIng
   binary, gptsync, and some drivers compile successfully; but only gptsync
-  runs normally. The drivers I've tried and the main rEFInd binary crash.)
+  runs normally. The drivers I've tried and the main rEFIng binary crash.)
 
 * The GNU-EFI package (http://sourceforge.net/projects/gnu-efi/). You can
-  install this from a package called "gnu-efi"; however, rEFInd relies on
+  install this from a package called "gnu-efi"; however, rEFIng relies on
   features that were added sometime between version 3.0s and 3.0u, so I
   recommend using 3.0u or later. The latest versions of GNU-EFI have
   abandoned the trailing letter and switched to a more traditional
@@ -59,7 +59,7 @@ presence of a .csv file, as documented here:
 
 https://github.com/rhboot/shim/blob/main/SBAT.md
 
-The rEFInd source code includes two .csv files: refind-sbat.csv (which is
+The rEFIng source code includes two .csv files: refind-sbat.csv (which is
 used by default) and refind-sbat-local.csv (which is intended for use if you
 compile locally). If you make changes to the source code, PLEASE create and
 use a suitable altered .csv file, as described in the link above. To select
@@ -68,7 +68,7 @@ override it on the command line, as in:
 
 make REFIND_SBAT_CSV=foo.csv all
 
-If you don't care about SBAT support and compiling rEFInd fails when adding
+If you don't care about SBAT support and compiling rEFIng fails when adding
 the SBAT section, you can set the OMIT_SBAT variable to 1, as in:
 
 make OMIT_SBAT=1
@@ -77,12 +77,12 @@ See the upcoming sections for more information on options used to build
 different programs or in different ways.
 
 
-Compiling rEFInd the Unix/Linux Way
+Compiling rEFIng the Unix/Linux Way
 ===================================
 
-With your development system set up, you can compile rEFInd as follows:
+With your development system set up, you can compile rEFIng as follows:
 
-1. Download and uncompress the rEFInd source code archive. (If you're
+1. Download and uncompress the rEFIng source code archive. (If you're
    reading this file, you've probably already done this task.)
 
 2. Open a Linux shell prompt
@@ -91,10 +91,10 @@ With your development system set up, you can compile rEFInd as follows:
    including this BUILDING.txt file and several subdirectories such as
    "refind", "libeg", "mok", "filesystems", and "include".
 
-4. Type "make" to build rEFInd and gptsync, or "make fs" to build the
+4. Type "make" to build rEFIng and gptsync, or "make fs" to build the
    filesystem drivers. Additional "make" targets enable you to fine-tune how
-   rEFInd is built and what components are built, as described shortly.
-   With any luck, rEFInd will compile without error, leaving the
+   rEFIng is built and what components are built, as described shortly.
+   With any luck, rEFIng will compile without error, leaving the
    "refind_ia32.efi", "refind_x64.efi", or "refind_aa64.efi" file, depending
    on your platform, in the "refind" subdirectory. This same step builds the
    "gptsync_ia32.efi", "gptsync_x64.efi", or "gptsync_aa64.efi" program
@@ -103,8 +103,8 @@ With your development system set up, you can compile rEFInd as follows:
    out of the refind subdirectory and type "make clean" before building the
    second architecture.
 
-The top-level rEFInd Makefile supports three toolchains, each of which
-provides several options to compile a subset of rEFInd's programs. (Note
+The top-level rEFIng Makefile supports three toolchains, each of which
+provides several options to compile a subset of rEFIng's programs. (Note
 that I specify AMD64/x86-64/X64 filenames in the below for simplicity.) The
 "make" targets are:
 
@@ -115,7 +115,7 @@ that I specify AMD64/x86-64/X64 filenames in the below for simplicity.) The
 * install -- This target runs the refind-install script with no
   arguments.
 
-If rEFInd doesn't compile correctly, you'll need to track down the source
+If rEFIng doesn't compile correctly, you'll need to track down the source
 of the problem. Double-check that you've got all the necessary development
 tools installed, including GCC, make, and GNU-EFI.
 You may also need to adjust the Makefile or Make.common file; or possibly
@@ -133,7 +133,7 @@ EFICRT0         = /usr/lib
 If you've installed GNU-EFI from source code, you may need to add "local" to
 those paths, as in "/usr/local/include/efi". You might need to change
 references to "lib" to "lib32" or "lib64" on some systems. Recall that you
-need at least GNU-EFI version 3.0u to build rEFInd, and some older or
+need at least GNU-EFI version 3.0u to build rEFIng, and some older or
 behind-the-times distributions might provide out-of-date versions of this
 package.
 
@@ -159,28 +159,28 @@ A Note about NTFS
 =================
 
 Over the years, I've received far too many queries from people who've had
-problems with rEFInd freezing because of the NTFS driver. Thus, beginning
+problems with rEFIng freezing because of the NTFS driver. Thus, beginning
 with rEFInd 0.11.5, the NTFS driver is NOT compiled by default. If you need
 it, you can still compile it manually by changing into the filesystems
 directory and typing "make ntfs". Alternatively, you can look at the NTFS
 driver in Pete Batard's efifs project (http://efi.akeo.ie). I can't promise
-this driver will be more reliable than rEFInd's, but it might be.
+this driver will be more reliable than rEFIng's, but it might be.
 
 
-Compiling rEFInd Under MacOS
+Compiling rEFIng Under MacOS
 ============================
 
 Building under macOS is *NOT SUPPORTED.*
 
 
-Installing rEFInd
+Installing rEFIng
 =================
 
-With rEFInd compiled, you can install it. The easiest way to do this is
+With rEFIng compiled, you can install it. The easiest way to do this is
 with the refind-install script, which works on both Linux and macOS.
 Alternatively, you can type "make install" to install using this script.
 Note that this script copies files to the ESP and uses "efibootmgr" (on
-Linux) or "bless" (on macOS) to add rEFInd to the firmware's boot loader
+Linux) or "bless" (on macOS) to add rEFIng to the firmware's boot loader
 list. The docs/man/refind-install.8 file (and its HTML conversion,
 docs/refind/refind-install.html) provides more details on this script and
 its use.
@@ -189,13 +189,13 @@ If refind-install doesn't work for you or if you prefer to do the job
 manually, you may. On a UEFI-based system, you'll want to copy files on the
 ESP as follows:
 
-* Create a directory for rEFInd, such as EFI/refind.
+* Create a directory for rEFIng, such as EFI/refind.
 * Copy refind/refind_ia32.efi or refind_x64.efi to the ESP's EFI/refind
   directory.
 * Copy refind.conf-sample to the EFI/refind directory as refind.conf.
 * Copy the icons subdirectory, including all its files, to EFI/refind.
 
-You'll then need to activate rEFInd in your EFI. This can be done with
+You'll then need to activate rEFIng in your EFI. This can be done with
 tools such as "efibootmgr" under Linux or "bless" under macOS. See the
 docs/refind/installing.html file for details.
 
@@ -215,7 +215,7 @@ having a post-install script call efibootmgr could also work, but this
 assumes that the ESP is mounted at /boot/efi. Also, Debian packages try to
 create symbolic links when updating packages, which won't work on an ESP,
 which should use FAT. For packaging examples, see the refind.spec file and
-debian subdirectory of the rEFInd source tarball.
+debian subdirectory of the rEFIng source tarball.
 
 Distribution packagers should create their own SBAT .csv filess, as
 described earlier, in "Preparing SBAT Support" and adjust the
@@ -228,7 +228,7 @@ make REFIND_SBAT_CSV=foo.csv all
 Adding Support for Network Boot
 ===============================
 
-rEFInd provides EXPERIMENTAL support for booting over the network using
+rEFIng provides EXPERIMENTAL support for booting over the network using
 iPXE (http://ipxe.org) as a means to receive the payload. In order to
 enable this feature you'll want to follow these instructions:
 
@@ -238,11 +238,11 @@ enable this feature you'll want to follow these instructions:
 * copy bin/ipxe.efi and bin/ipxe_discover.efi to the EFI volume at EFI/tools/
 
 Note that you may need to install additional development packages, such as
-libiberty-dev and binutils-dev, in addition to those needed to build rEFInd
+libiberty-dev and binutils-dev, in addition to those needed to build rEFIng
 itself.
 
 My own tests show this support to work under optimal conditions; however,
 architecture (EFI vs. BIOS) detection may not work, and some computers will
 hang or won't retrieve boot files from the network. For these reasons, this
-support is disabled by default in rEFInd, and I do not provide iPXE
+support is disabled by default in rEFIng, and I do not provide iPXE
 binaries.

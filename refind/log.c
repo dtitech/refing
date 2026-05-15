@@ -1,9 +1,9 @@
 /*
  * refind/log.c
- *.
- * Definitions to handle rEFInd's logging facility, activated by setting
+ *
+ * Definitions to handle rEFIng's logging facility, activated by setting
  * log_level in refind.conf.
- *.
+ *
  */
 /*
  * Copyright (c) 2012-2024 Roderick W. Smith

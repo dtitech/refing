@@ -1,6 +1,6 @@
 /*
  * refind/install.h
- * Headers related to installation of rEFInd
+ * Headers related to installation of rEFIng
  *
  * Copyright (c) 2020-2024 by Roderick W. Smith
  *

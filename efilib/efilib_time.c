@@ -51,7 +51,7 @@ const UINT8 dtACPI_RsdPtr[] = { 0x52, 0x53, 0x44, 0x20, 0x50, 0x54, 0x52, 0x20 }
 
 EFI_GUID gTimestampGuid = EFI_TIMESTAMP_PROTOCOL_GUID;
 
-UINT64                   gTimeIV   = 0;      // Time initial value (rEFInd start time)
+UINT64                   gTimeIV   = 0;      // Time initial value (rEFIng start time)
 UINTN                    gTimeDiv  = 1;      // Time divisor (TSC)
 UINTN                    gTimeOp   = 0;      // Time operation 0 = divide, 1 = multiply
 UINTN                    gTimeMod  = 1;      // Time operation value

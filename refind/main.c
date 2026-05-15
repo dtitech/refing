@@ -165,7 +165,7 @@ EFI_GUID RefindGuid = REFIND_GUID_VALUE;
 // misc functions
 //
 
-VOID AboutrEFInd(VOID)
+VOID AboutrEFIng(VOID)
 {
     CHAR16     *FirmwareVendor;
     CHAR16     *TempStr;
@@ -174,10 +174,11 @@ VOID AboutrEFInd(VOID)
     LOG(3, LOG_LINE_SEPARATOR, L"Displaying About/Info screen");
     if (AboutMenu.EntryCount == 0) {
         AboutMenu.TitleImage = BuiltinIcon(BUILTIN_ICON_FUNC_ABOUT);
-        AddMenuInfoLine(&AboutMenu, PoolPrint(L"rEFInd Version %s", REFIND_VERSION));
+        AddMenuInfoLine(&AboutMenu, PoolPrint(L"rEFIng Version %s", REFIND_VERSION));
         AddMenuInfoLine(&AboutMenu, L"");
         AddMenuInfoLine(&AboutMenu, L"Copyright (c) 2006-2010 Christoph Pfisterer");
         AddMenuInfoLine(&AboutMenu, L"Copyright (c) 2012-2024 Roderick W. Smith");
+        AddMenuInfoLine(&AboutMenu, L"Copyright (c) 2026, DTI Technologies s.r.o.");
         AddMenuInfoLine(&AboutMenu, L"Portions Copyright (c) Intel Corporation and others");
         AddMenuInfoLine(&AboutMenu, L"Distributed under the terms of the GNU GPLv3 license");
         AddMenuInfoLine(&AboutMenu, L"");
@@ -213,16 +214,16 @@ VOID AboutrEFInd(VOID)
         AddMenuInfoLine(&AboutMenu, L"");
         AddMenuInfoLine(&AboutMenu, L"Built with GNU-EFI");
         AddMenuInfoLine(&AboutMenu, L"");
-        AddMenuInfoLine(&AboutMenu, L"For more information, see the rEFInd Web site:");
-        AddMenuInfoLine(&AboutMenu, L"http://www.rodsbooks.com/refind/");
+        AddMenuInfoLine(&AboutMenu, L"For more information, see the rEFIng Web site:");
+        AddMenuInfoLine(&AboutMenu, L"https://github.com/dtitech/refing");
         AddMenuEntry(&AboutMenu, &MenuEntryReturn);
         MyFreePool(FirmwareVendor);
     }
 
     RunMenu(&AboutMenu, NULL);
-} /* VOID AboutrEFInd() */
+} /* VOID AboutrEFIng() */
 
-// Record the value of the loader's name/description in rEFInd's "PreviousBoot" EFI variable,
+// Record the value of the loader's name/description in rEFIng's "PreviousBoot" EFI variable,
 // if it's different from what's already stored there.
 VOID StoreLoaderName(IN CHAR16 *Name) {
 
@@ -320,7 +321,7 @@ static VOID SetConfigFilename(EFI_HANDLE ImageHandle) {
 } // VOID SetConfigFilename()
 
 // Adjust the GlobalConfig.DefaultSelection variable: Replace all "+" elements with the
-// rEFInd PreviousBoot variable, if it's available. If it's not available, delete that
+// rEFIng PreviousBoot variable, if it's available. If it's not available, delete that
 // element.
 static VOID AdjustDefaultSelection() {
     UINTN i = 0, j;
@@ -357,7 +358,7 @@ static VOID AdjustDefaultSelection() {
         LOG(4, LOG_LINE_NORMAL, L"DefaultSelection[OUT]: NULL");
 } // AdjustDefaultSelection()
 
-// Log basic information (rEFInd version, EFI version, etc.) to the log file.
+// Log basic information (rEFIng version, EFI version, etc.) to the log file.
 VOID LogBasicInfo(VOID) {
     EFI_STATUS Status;
     UINT64     MaximumVariableStorageSize;
@@ -370,7 +371,7 @@ VOID LogBasicInfo(VOID) {
     EFI_GUID   GraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 
     LOG(3, LOG_LINE_SEPARATOR, L"System information");
-    LOG(3, LOG_LINE_NORMAL, L"rEFInd %s built with GNU-EFI", REFIND_VERSION);
+    LOG(3, LOG_LINE_NORMAL, L"rEFIng %s built with GNU-EFI", REFIND_VERSION);
     TempStr = GuidAsString(&(SelfVolume->PartGuid));
     LOG(3, LOG_LINE_NORMAL, L"rEFInd boot partition GUID: %s", TempStr);
     MyFreePool(TempStr);
@@ -567,8 +568,8 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
                 MainLoopRunning = FALSE;   // just in case we get this far
                 break;
 
-            case TAG_ABOUT:    // About rEFInd
-                AboutrEFInd();
+            case TAG_ABOUT:    // About rEFIng
+                AboutrEFIng();
                 break;
 
             case TAG_LOADER:   // Boot OS via .EFI loader
@@ -595,7 +596,7 @@ efi_main (EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable)
                 ManageHiddenTags();
                 break;
 
-            case TAG_EXIT:    // Terminate rEFInd
+            case TAG_EXIT:    // Terminate rEFIng
                 if ((MokProtocol) && !SecureBootUninstall()) {
                    MainLoopRunning = FALSE;   // just in case we get this far
                 } else {

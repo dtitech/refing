@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 **/
 
 /*
- * rEFInd NOTE: This file is included only when compiling with GNU-EFI,
+ * rEFIng NOTE: This file is included only when compiling with GNU-EFI,
  * which has not traditionally provided the definitions supplied here.
  * Unfortunately, recent (ca. 3.0.4) versions of GNU-EFI have added
  * SOME of these functions to an existing header file, creating problems

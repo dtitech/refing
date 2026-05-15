@@ -1,9 +1,9 @@
 /*
  * refind/log.h
- *.
- * Definitions to handle rEFInd's logging facility, activated by setting
+ *
+ * Definitions to handle rEFIng's logging facility, activated by setting
  * log_level in refind.conf.
- *.
+ *
  */
 /*
  * Copyright (c) 2012-2024 Roderick W. Smith
@@ -26,8 +26,8 @@
 #define LOG_LINE_SEPARATOR   2
 #define LOG_LINE_THIN_SEP    3
 
-#define LOGFILE L"refind.log"
-#define LOGFILE_OLD L"refind.log-old"
+#define LOGFILE L"refing.log"
+#define LOGFILE_OLD L"refing.log-old"
 
 #define LOG(Level, Type, ...) LOG_Write(Level, Type, __VA_ARGS__)
 

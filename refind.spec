@@ -1,12 +1,12 @@
 Summary: EFI boot manager software
-Name: refind
+Name: refing
 Version: 0.14.2
 Release: 1%{?dist}
 Summary: EFI boot manager software
 License: GPLv3
-URL: http://www.rodsbooks.com/refind/
+URL: https://github.com/dtitech/refing
 Group: System Environment/Base
-Source: refind-src-%version.tar.gz
+Source: refing-src-%version.tar.gz
 Requires: efibootmgr gawk gdisk mokutil
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
@@ -34,15 +34,15 @@ BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 %description
 
 A graphical boot manager for EFI- and UEFI-based computers, such as all
-Intel-based Macs and recent (most 2011 and later) PCs. rEFInd presents a
+Intel-based Macs and recent (most 2011 and later) PCs. rEFIng presents a
 boot menu showing all the EFI boot loaders on the EFI-accessible
 partitions, and optionally BIOS-bootable partitions on Macs and BIOS boot
 entries on UEFI PCs with CSMs. EFI-compatible OSes, including Linux,
-provide boot loaders that rEFInd can detect and launch. rEFInd can launch
+provide boot loaders that rEFIng can detect and launch. rEFIng can launch
 Linux EFI boot loaders such as ELILO, GRUB Legacy, GRUB 2, and 3.3.0 and
 later kernels with EFI stub support. EFI filesystem drivers for ext2/3/4fs,
-ReiserFS, Btrfs, NTFS, HFS+, and ISO-9660 enable rEFInd to read boot
-loaders from these filesystems, too. rEFInd's ability to detect boot
+ReiserFS, Btrfs, NTFS, HFS+, and ISO-9660 enable rEFIng to read boot
+loaders from these filesystems, too. rEFIng's ability to detect boot
 loaders at runtime makes it very easy to use, particularly when paired with
 Linux kernels that provide EFI stub support.
 
@@ -57,7 +57,7 @@ make fs
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/share/refind-%{version}/refind/
 
-# Copy the rEFInd binaries (rEFInd proper and drivers) to /usr/share/refind-%{version},
+# Copy the rEFIng binaries (rEFIng proper and drivers) to /usr/share/refind-%{version},
 # including signing the binaries if sbsign is installed and a %{keydir}/refind.key file
 # is available
 SBSign=`which sbsign 2> /dev/null`

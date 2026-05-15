@@ -1,4 +1,4 @@
-# Makefile for rEFInd
+# Makefile for rEFIng
 
 # This program is licensed under the terms of the GNU GPL, version 3,
 # or (at your option) any later version.

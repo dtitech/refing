@@ -378,9 +378,9 @@ EFI_STATUS ReinitRefitLib(VOID)
 // EFI variable read and write functions
 //
 
-// Create a directory for holding the rEFInd variables, if they're stored on
-// disk. This will be in the rEFInd install directory if possible, or on the
-// first ESP that rEFInd can identify if not (typically, this means rEFInd is
+// Create a directory for holding the rEFIng variables, if they're stored on
+// disk. This will be in the rEFIng install directory if possible, or on the
+// first ESP that rEFIng can identify if not (typically, this means rEFIng is
 // on a read-only filesystem, such as HFS+ on a Mac). If neither location can
 // be used, sets GlobalConfig.UseNvram to TRUE. Sets the pointer to the
 // directory in the file-global gVarsDir variable and returns the success of
@@ -414,7 +414,7 @@ EFI_STATUS CreateVarsDir(VOID) {
 } // EFI_STATUS FindVarsDir()
 
 // Retrieve a raw EFI variable, either from NVRAM or from a disk file under
-// rEFInd's "vars" subdirectory, depending on GlobalConfig.UseNvram.
+// rEFIng's "vars" subdirectory, depending on GlobalConfig.UseNvram.
 // Returns EFI status
 EFI_STATUS EfivarGetRaw(IN EFI_GUID *vendor, IN CHAR16 *name, OUT CHAR8 **buffer, OUT UINTN *size OPTIONAL) {
     UINT8 *buf = NULL;
@@ -466,7 +466,7 @@ EFI_STATUS EfivarGetRaw(IN EFI_GUID *vendor, IN CHAR16 *name, OUT CHAR8 **buffer
     return Status;
 } // EFI_STATUS EfivarGetRaw()
 
-// Set an EFI variable. This is normally done to NVRAM; however, rEFInd-specific
+// Set an EFI variable. This is normally done to NVRAM; however, rEFIng-specific
 // variables (as determined by the *vendor code) will be saved to a disk file IF
 // GlobalConfig.UseNvram == FALSE.
 // To minimize wear & tear on NVRAM, this function first reads the contents of
@@ -1952,7 +1952,7 @@ VOID EraseUint32List(UINT32_LIST **TheList) {
 } // EraseUin32List()
 
 /* When using GNU-EFI, revert to the old ReallocatePool() function, because
-   GNU-EFI 4.x changed its definition in a way that broke rEFInd.
+   GNU-EFI 4.x changed its definition in a way that broke rEFIng.
    Modified from efilib/BmLib.c (matches GNU-EFI 3.x); original copyright Intel
    & BSD-licensed. */
 VOID *

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Linux script to move an existing rEFInd installation from one directory to
+# Linux script to move an existing rEFIng installation from one directory to
 # another
 #
 # copyright (c) 2013-2015 by Roderick W. Smith
@@ -15,7 +15,7 @@
 # ./mvrefind /path/to/source /path/to/destination
 #
 # Typically used to "hijack" or "unhijack" a Windows boot loader location or
-# to help convert a rEFInd installation made in BIOS mode to one that works
+# to help convert a rEFIng installation made in BIOS mode to one that works
 # in EFI mode.
 #
 # Revision history:
@@ -26,7 +26,7 @@
 # 0.10.0  -- Renamed from mvrefind.sh to mvrefind
 # 0.6.3   -- Initial release
 #
-# Note: mvrefind version numbers match those of the rEFInd package
+# Note: mvrefind version numbers match those of the rEFIng package
 # with which they first appeared.
 
 RootDir="/"
@@ -145,7 +145,7 @@ CheckForFiles() {
    if [[ (! -f $SourceDir/$Source) ||
          ($SourceShim != "none" && ! -f $SourceDir/SourceShim) ||
          ! -f $SourceDir/refind.conf ]] ; then
-      echo "There doesn't seem to be a rEFInd installation at $SourceDir!"
+      echo "There doesn't seem to be a rEFIng installation at $SourceDir!"
       echo "Aborting!"
       exit 1
    fi
@@ -216,12 +216,12 @@ PostMoveCleanup() {
    fi
 } # PostMoveCleanup()
 
-# Create a BOOT.CSV file in the same directory as rEFInd, to help in recovery
+# Create a BOOT.CSV file in the same directory as rEFIng, to help in recovery
 # should the system's boot entry list be lost
 CreateBootCsvFile() {
    IConv="$(command -v iconv 2> /dev/null)"
    if [[ -x "$IConv" && -d "$TargetDir" ]] ; then
-      echo "$Target,rEFInd boot manager,,This is the boot entry for rEFInd" | \
+      echo "$Target,rEFIng boot manager,,This is the boot entry for rEFIng" | \
            $IConv -t UCS-2 > "$TargetDir/BOOT.CSV"
    fi
 } # CreateBootCsvFile()
@@ -259,7 +259,7 @@ AddNvramEntry() {
          # Name it the way some firmware expects -- see http://mjg59.dreamwidth.org/20187.html
          $Efibootmgr -c -l $EfiEntryFilename -L "Windows Boot Manager" -d $InstallDisk -p $PartNum &> /dev/null
       else
-         $Efibootmgr -c -l $EfiEntryFilename -L "rEFInd Boot Manager" -d $InstallDisk -p $PartNum &> /dev/null
+         $Efibootmgr -c -l $EfiEntryFilename -L "rEFIng Boot Manager" -d $InstallDisk -p $PartNum &> /dev/null
       fi
       if [[ $? != 0 ]] ; then
          EfibootmgrProblems=1
@@ -268,7 +268,7 @@ AddNvramEntry() {
 
    if [[ $EfibootmgrProblems ]] ; then
       echo
-      echo "ALERT: There were problems running the efibootmgr program! Your moved rEFInd"
+      echo "ALERT: There were problems running the efibootmgr program! Your moved rEFIng"
       echo "might not run!"
       echo
    fi

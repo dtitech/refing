@@ -1,7 +1,7 @@
 .\" Copyright 2023-2024 Roderick W. Smith (rodsmith@rodsbooks.com)
 .\" May be distributed under the GNU Free Documentation License version 1.3 or
 any later version
-.TH "REFIND-SB-HEALTHCHECK" "8" "0.14.2" "Roderick W. Smith" "rEFInd Manual"
+.TH "REFIND-SB-HEALTHCHECK" "8" "0.14.2" "Roderick W. Smith" "rEFIng Manual"
 .SH "NAME"
 refind-sb-healthcheck \- Interactively check and update Shim and Secure Boot keys
 .SH "SYNOPSIS"
@@ -13,7 +13,7 @@ Booting via Secure Boot relies upon a number of keys and, in most cases
 under Linux, the an EFI binary known as Shim (typically \fIshimx64.efi\fR
 for x86-64 computers). This Shim binary, and the keys upon which the whole
 process relies, can age out of usefulness. Because most distributions are
-not rEFInd-centric, keeping the keys and Shim binary up-to-date falls on the
+not rEFIng-centric, keeping the keys and Shim binary up-to-date falls on the
 individual system administrator. The \fIrefind-sb-healthcheck\fR script
 helps with that; it performs a number of checks, and can optionally update
 binaries and key files (but not public keys stored in NVRAM):
@@ -29,20 +29,20 @@ program (\fImmx64.efi\fR on x86-64 systems) is updated along with Shim.
 
 .TP
 .B *
-The \fIrefind-install\fR script generates local rEFInd keys, to be used when
-signing rEFInd binaries that are not signed or to override existing
+The \fIrefind-install\fR script generates local rEFIng keys, to be used when
+signing rEFIng binaries that are not signed or to override existing
 signatures. These keys have a 10-year lifespan by default. The
 \fIrefind-sb-healthcheck\fR script checks the age of the current local
-rEFInd signing key and, if it's expired or within one year of expiration,
+rEFIng signing key and, if it's expired or within one year of expiration,
 offers to replace the existing key. Note that, even if the user opts to
-update the key, existing rEFInd binaries are not re-signed. The new key may
-be added to the MOK list, but if the rEFInd key was added to the Secure Boot
+update the key, existing rEFIng binaries are not re-signed. The new key may
+be added to the MOK list, but if the rEFIng key was added to the Secure Boot
 db, updating the db is left to the user.
 
 .TP
 .B *
 The Machine Owner Key (MOK) list is stored in NVRAM. It can contain keys for
-rEFInd, Linux distributions, and other keys, all of which will eventually
+rEFIng, Linux distributions, and other keys, all of which will eventually
 expire. The \fIrefind-sb-healthcheck\fR script scans the MOK and reports if
 there are any expired keys or keys that will expire within a year. If the
 user wants to update such keys, the user must track down appropriate updates
@@ -70,7 +70,7 @@ it discovers.
 
 .SH "LIMITATIONS"
 
-\fIrefind-sb-healthcheck\fR is a tool to assist in maintaining a rEFInd
+\fIrefind-sb-healthcheck\fR is a tool to assist in maintaining a rEFIng
 installation that uses Secure Boot. It is not meant to completely and
 automatically handle all Secure Boot maintenance tasks. Some notable
 limitations include:
@@ -91,13 +91,13 @@ number standards.
 
 .TP
 .B *
-The script does not attempt to maintain non-rEFInd key files, such as those
+The script does not attempt to maintain non-rEFIng key files, such as those
 a user might maintain to sign kernel binaries or kernel modules.
 
 .TP
 .B *
 \fIrefind-sb-healthcheck\fR incorporates a number of assumptions about the
-locations of rEFInd key files, the existence of common support programs, and
+locations of rEFIng key files, the existence of common support programs, and
 the nature of the current installation. It may fail in unusual ways if these
 assumptions are violated.
 
@@ -119,8 +119,7 @@ Primary author: Roderick W. Smith (rodsmith@rodsbooks.com)
 .BR refind-mkdefault (8),
 .BR efibootmgr (8).
 
-\fIhttps://www.rodsbooks.com/refind/\fR
+\fIhttps://github.com/dtitech/refing\fR
 
 .SH "AVAILABILITY"
-The \fBrefind-mkdefault\fR command is part of the \fIrEFInd\fR package and is
-available from Roderick W. Smith.
+The \fBrefind-mkdefault\fR command is part of the \fIrEFIng\fR package.

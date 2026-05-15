@@ -436,7 +436,7 @@ extern REFIT_MENU_ENTRY MenuEntryReturn;
 
 // Global function definitions....
 
-VOID AboutrEFInd(VOID);
+VOID AboutrEFIng(VOID);
 EG_IMAGE * GetDiskBadge(IN UINTN DiskType);
 LOADER_ENTRY * MakeGenericLoaderEntry(VOID);
 VOID StoreLoaderName(IN CHAR16 *Name);

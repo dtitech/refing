@@ -295,7 +295,7 @@ VOID DrawScreenHeader(IN CHAR16 *Title)
 
     // print header text
     refit_call3_wrapper(ST->ConOut->SetCursorPosition, ST->ConOut, 3, 1);
-    Print(L"rEFInd - %s", Title);
+    Print(L"rEFIng - %s", Title);
 
     // reposition cursor
     refit_call2_wrapper(ST->ConOut->SetAttribute, ST->ConOut, ATTR_BASIC);

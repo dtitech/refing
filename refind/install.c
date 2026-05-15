@@ -1,6 +1,6 @@
 /*
  * refind/install.c
- * Functions related to installation of rEFInd and management of EFI boot order
+ * Functions related to installation of rEFIng and management of EFI boot order
  *
  * Copyright (c) 2020-2024 by Roderick W. Smith
  *
@@ -92,7 +92,7 @@ static REFIT_VOLUME *PickOneESP(ESP_LIST *AllESPs) {
     INTN                DefaultEntry = 0, MenuExit = MENU_EXIT_ESCAPE, i = 1;
     MENU_STYLE_FUNC     Style = TextMenuStyle;
     REFIT_MENU_ENTRY    *ChosenOption, *MenuEntryItem = NULL;
-    REFIT_MENU_SCREEN   InstallMenu = { L"Install rEFInd", NULL, 0, NULL, 0, NULL, 0, NULL,
+    REFIT_MENU_SCREEN   InstallMenu = { L"Install rEFIng", NULL, 0, NULL, 0, NULL, 0, NULL,
                                         L"Select a destination and press Enter or",
                                         L"press Esc to return to main menu without changes" };
 
@@ -102,7 +102,7 @@ static REFIT_VOLUME *PickOneESP(ESP_LIST *AllESPs) {
 
     if (AllESPs) {
         CurrentESP = AllESPs;
-        AddMenuInfoLine(&InstallMenu, L"Select a partition and press Enter to install rEFInd");
+        AddMenuInfoLine(&InstallMenu, L"Select a partition and press Enter to install rEFIng");
         while (CurrentESP != NULL) {
             MenuEntryItem = AllocateZeroPool(sizeof(REFIT_MENU_ENTRY));
             GuidStr = GuidAsString(&(CurrentESP->Volume->PartGuid));
@@ -223,7 +223,7 @@ EFI_STATUS BackupOldFile(IN EFI_FILE_PROTOCOL *BaseDir, CHAR16 *FileName) {
     return (Status);
 } // EFI_STATUS BackupOldFile()
 
-// Create directories in which rEFInd will reside....
+// Create directories in which rEFIng will reside....
 static EFI_STATUS CreateDirectories(IN EFI_FILE_PROTOCOL *BaseDir) {
     CHAR16            *FileName = NULL;
     UINTN             i = 0, Status = EFI_SUCCESS;
@@ -405,13 +405,13 @@ static EFI_STATUS CopyFiles(IN EFI_FILE_PROTOCOL *TargetDir) {
     FindVolumeAndFilename(GlobalConfig.SelfDevicePath, &SourceVolume, &SourceFile);
     SourceDir = FindPath(SourceFile);
 
-    // Begin by copying rEFInd itself....
+    // Begin by copying rEFIng itself....
     RefindName = PoolPrint(L"EFI\\refind\\%s", INST_REFIND_NAME);
     Status = CopyOneFile(SourceVolume->RootDir, SourceFile, TargetDir, RefindName);
     MyFreePool(SourceFile);
     MyFreePool(RefindName);
     if (EFI_ERROR(Status)) {
-        LOG(1, LOG_LINE_NORMAL, L"Error copying rEFInd binary; installation has failed");
+        LOG(1, LOG_LINE_NORMAL, L"Error copying rEFIng binary; installation has failed");
         Status = WorstStatus = EFI_ABORTED;
     }
 
@@ -476,7 +476,7 @@ static VOID CreateFallbackCSV(IN EFI_FILE_PROTOCOL *TargetDir) {
     Status = refit_call5_wrapper(TargetDir->Open, TargetDir, &FilePtr, L"\\EFI\\refind\\BOOT.CSV",
                                  EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE | EFI_FILE_MODE_CREATE, 0);
     if (Status == EFI_SUCCESS) {
-        Contents = PoolPrint(L"%s,rEFInd Boot Manager,,This is the boot entry for rEFInd\n",
+        Contents = PoolPrint(L"%s,rEFIng Boot Manager,,This is the boot entry for rEFIng\n",
                              INST_REFIND_NAME);
         if (Contents) {
             FileSize = StrSize(Contents);
@@ -530,7 +530,7 @@ static BOOLEAN CopyRefindFiles(IN EFI_FILE_PROTOCOL *TargetDir) {
  *
  ***********************/
 
-// Find a Boot#### number that will boot the new rEFInd installation. This
+// Find a Boot#### number that will boot the new rEFIng installation. This
 // function must be passed:
 // - *Entry -- A new entry that's been constructed, but not yet stored in NVRAM
 // - Size -- The size of the new entry
@@ -550,7 +550,7 @@ static BOOLEAN CopyRefindFiles(IN EFI_FILE_PROTOCOL *TargetDir) {
 // an exact duplicate, then this function will return 5, resulting in two
 // identical entries (Boot0005 and Boot0006). This is done because scanning
 // all possible entries (0 through 0xffff) takes a few seconds, and because
-// a single duplicate isn't a big deal. (If rEFInd is re-installed via this
+// a single duplicate isn't a big deal. (If rEFIng is re-installed via this
 // feature again, this function will return "5," so no additional duplicate
 // entry will be created. A third duplicate might be created if some other
 // process were to delete an entry between Boot0000 and Boot0004, though.)
@@ -655,7 +655,7 @@ static EFI_STATUS SetBootDefault(UINTN BootNum) {
     return Status;
 } // EFI_STATUS SetBootDefault()
 
-// Create an NVRAM entry for the newly-installed rEFInd and make it the default.
+// Create an NVRAM entry for the newly-installed rEFIng and make it the default.
 // (If an entry that's identical to the one this function would create already
 // exists, it may be used instead; see the comments before the FindBootNum()
 // function for details and caveats.)
@@ -667,7 +667,7 @@ static EFI_STATUS CreateNvramEntry(EFI_HANDLE DeviceHandle) {
 
     ProgName = PoolPrint(L"\\EFI\\refind\\%s", INST_REFIND_NAME);
     Status = ConstructBootEntry(DeviceHandle, ProgName,
-                                L"rEFInd Boot Manager", (CHAR8**) &Entry, &Size);
+                                L"rEFIng Boot Manager", (CHAR8**) &Entry, &Size);
     MyFreePool(ProgName);
     if (Status == EFI_SUCCESS)
         BootNum = FindBootNum(Entry, Size, &AlreadyExists);
@@ -687,18 +687,18 @@ static EFI_STATUS CreateNvramEntry(EFI_HANDLE DeviceHandle) {
 
 /***********************
  *
- * The main rEFInd-installation function....
+ * The main rEFIng-installation function....
  *
  ***********************/
 
-// Install rEFInd to an ESP that the user specifies, create an NVRAM entry for
+// Install rEFIng to an ESP that the user specifies, create an NVRAM entry for
 // that installation, and set it as the default boot option.
 VOID InstallRefind(VOID) {
     ESP_LIST      *AllESPs;
     REFIT_VOLUME  *SelectedESP; // Do not free
     UINTN         Status;
 
-    LOG(3, LOG_LINE_THIN_SEP, L"Installing rEFInd to an ESP");
+    LOG(3, LOG_LINE_THIN_SEP, L"Installing rEFIng to an ESP");
     AllESPs = FindAllESPs();
     SelectedESP = PickOneESP(AllESPs);
     if (SelectedESP) {
@@ -707,12 +707,12 @@ VOID InstallRefind(VOID) {
             Status = CreateNvramEntry(SelectedESP->DeviceHandle);
         DeleteESPList(AllESPs);
         if (Status == EFI_SUCCESS) {
-            DisplaySimpleMessage(L"Information", L"rEFInd successfully installed");
+            DisplaySimpleMessage(L"Information", L"rEFIng successfully installed");
         } else {
             DisplaySimpleMessage(L"Warning", L"Problems encountered during installation");
         } // if/else
     } // if
-    LOG(3, LOG_LINE_THIN_SEP, L"Done installing rEFInd to an ESP");
+    LOG(3, LOG_LINE_THIN_SEP, L"Done installing rEFIng to an ESP");
 } // VOID InstallRefind()
 
 /***********************

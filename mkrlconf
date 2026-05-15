@@ -27,7 +27,7 @@
 # 0.7.7   -- Fixed bug that caused stray PARTUUID= and line breaks in generated file
 # 0.5.1   -- Initial release
 #
-# Note: mkrlconf version numbers match those of the rEFInd package
+# Note: mkrlconf version numbers match those of the rEFIng package
 # with which they first appeared.
 
 RLConfFile="/boot/refind_linux.conf"
