@@ -1,0 +1,14 @@
+# refing-install symlink is added to usr/sbin as well (see refing.links)
+banners usr/share/refing
+drivers_* usr/share/refing/refing
+fonts usr/share/refing
+icons/*.png usr/share/refing/refing/icons
+icons/README usr/share/refing/refing/icons
+keys etc/refing.d
+mkrlconf usr/sbin
+mvrefing usr/sbin
+refing-sb-healthcheck usr/sbin
+refing-install usr/share/refing
+refing-mkdefault usr/sbin
+refing.conf-sample usr/share/refing/refing
+refing/refing*.efi usr/share/refing/refing

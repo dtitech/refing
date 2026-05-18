@@ -8,7 +8,7 @@
 include Make.common
 
 SHELL           = /bin/bash
-LOADER_DIR      = refind
+LOADER_DIR      = loader
 FS_DIR          = filesystems
 LIBEG_DIR       = libeg
 MOK_DIR         = mok
@@ -54,11 +54,11 @@ clean:
 # *NOT* use this target as part of the build process for your
 # binary packages (RPMs, Debian packages, etc.). (Gentoo could
 # use it in an ebuild, though....) You COULD, however, copy the
-# files to a directory somewhere (/usr/share/refind or whatever)
-# and then call refind-install as part of the binary package
+# files to a directory somewhere (/usr/share/refing or whatever)
+# and then call refing-install as part of the binary package
 # installation process.
 
 install:
-	./refind-install
+	./refing-install
 
 # DO NOT DELETE

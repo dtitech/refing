@@ -14,7 +14,7 @@ install_to_esp() {
     # the current boot; it will be null otherwise
     BootShimFile=$(efibootmgr -v | grep Boot$BootCurrent | cut -f 2- -d '\' | cut -f 1 -d ')' | grep -i 'shim\|preloader' || true)
 
-    cd /usr/share/refind
+    cd /usr/share/refing
 
     if [[ -f /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c ]] ; then
         IsSecureBoot=$(od -An -t u1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c | awk '{print substr($0,length,1)}')
@@ -41,15 +41,15 @@ install_to_esp() {
     # local keys.
     if [[ $IsSecureBoot == "1" && -n $ShimFile && -n "$BootShimFile" ]] ; then
         if [[ -n $SBSign && -n $OpenSSL ]] ; then
-            ./refind-install --shim $ShimFile --localkeys --yes > /dev/null
+            ./refing-install --shim $ShimFile --localkeys --yes > /dev/null
         else
-            ./refind-install --shim $ShimFile --yes > /dev/null
+            ./refing-install --shim $ShimFile --yes > /dev/null
         fi
     else
         if [[ -n $SBSign && -n $OpenSSL ]] ; then
-            ./refind-install --localkeys --yes > /dev/null
+            ./refing-install --localkeys --yes > /dev/null
         else
-            ./refind-install --yes > /dev/null
+            ./refing-install --yes > /dev/null
         fi
     fi
 } # install_to_esp()
@@ -60,7 +60,7 @@ install_to_esp() {
 
 case "$1" in
     configure)
-        db_get refind/install_to_esp || true;
+        db_get refing/install_to_esp || true;
         if [ x"$RET" = x"true" ]; then
             echo "Installing rEFIng to the ESP..."
             install_to_esp
@@ -68,13 +68,13 @@ case "$1" in
             echo "** Not installing rEFIng to the ESP! **"
             echo "If you want rEFIng to control the boot process, you can do so by runing:"
             echo ""
-            echo "dpkg-reconfigure refind"
+            echo "dpkg-reconfigure refing"
             echo ""
         fi
     ;;
 
     reconfigure)
-        db_get refind/install_to_esp || true;
+        db_get refing/install_to_esp || true;
         if [ x"$RET" = x"true" ]; then
             echo "Installing rEFIng to the ESP..."
             install_to_esp

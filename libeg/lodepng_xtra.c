@@ -24,8 +24,8 @@
  */
 
 #include "global.h"
-#include "../refind/screen.h"
-#include "../refind/lib.h"
+#include "../loader/screen.h"
+#include "../loader/lib.h"
 #include "lodepng.h"
 
 // EFI's equivalent of realloc requires the original buffer's size as an

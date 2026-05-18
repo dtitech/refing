@@ -13,11 +13,11 @@ mkrlconf \- Create a Linux kernel configuration file for rEFIng
 To boot a Linux kernel directly, rEFIng must normally pass system-specific
 parameters to help the kernel locate its initial RAM disk (initrd) file,
 the installation's root filesystem, and so on. rEFIng stores this
-information in a file called \fIrefind_linux.conf\fR, which is stored in
+information in a file called \fIrefing_linux.conf\fR, which is stored in
 the same directory as the kernel(s) to which it applies. The \fImkrlconf\fR
 script creates this configuration file in \fI/boot\fR, using the current
 boot options (from \fI/proc/cmdline\fR) to populate
-\fI/boot/refind_linux.conf\fR with boot options that are probably (but not
+\fI/boot/refing_linux.conf\fR with boot options that are probably (but not
 certainly) correct.
 
 The file created in this way has three lines, which correspond to three
@@ -26,7 +26,7 @@ options found in \fI/proc/cmdline\fR. The second entry boots using the same
 options as the first, but with \fBsingle\fR added. The third entry boots
 with minimal options of \fBro root={CURRENT_ROOT_DEVICE}\fR, where
 \fB{CURRENT_ROOT_DEVICE}\fR identifies the current root (\fI/\fR)
-filesystem. Users may manually edit the \fIrefind_linux.conf\fR file to
+filesystem. Users may manually edit the \fIrefing_linux.conf\fR file to
 suit their needs, of course.
 
 .SH "OPTIONS"
@@ -34,7 +34,7 @@ suit their needs, of course.
 .TP
 .B \-\-force
 Ordinarily, if \fImkrlconf\fR finds an existing
-\fI/boot/refind_linux.conf\fR file, it refuses to replace it. The
+\fI/boot/refing_linux.conf\fR file, it refuses to replace it. The
 \fB\-\-force\fR option causes \fImkrlconf\fR to replace the existing file
 in favor of one it generates.
 
@@ -42,9 +42,9 @@ in favor of one it generates.
 Primary author: Roderick W. Smith (rodsmith@rodsbooks.com)
 
 .SH "SEE ALSO"
-.BR mvrefind (8),
-.BR refind-install (8),
-.BR refind-sb-healthcheck (8).
+.BR mvrefing (8),
+.BR refing-install (8),
+.BR refing-sb-healthcheck (8).
 
 \fIhttps://github.com/dtitech/refing\fR
 

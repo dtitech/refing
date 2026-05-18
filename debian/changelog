@@ -1,3 +1,9 @@
+refing (0.14.2-0ppa1) jammy; urgency=medium
+
+  * Rename
+
+ -- Tomas Kyzlink <tkyzlink@dtitech.cz>  Sun, 17 May 2026 23:37:31 +0200
+
 refind (0.14.2-0ppa1) jammy; urgency=medium
 
   * Version bump

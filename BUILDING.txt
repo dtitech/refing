@@ -59,14 +59,14 @@ presence of a .csv file, as documented here:
 
 https://github.com/rhboot/shim/blob/main/SBAT.md
 
-The rEFIng source code includes two .csv files: refind-sbat.csv (which is
-used by default) and refind-sbat-local.csv (which is intended for use if you
+The rEFIng source code includes two .csv files: refing-sbat.csv (which is
+used by default) and refing-sbat-local.csv (which is intended for use if you
 compile locally). If you make changes to the source code, PLEASE create and
 use a suitable altered .csv file, as described in the link above. To select
-which .csv file to use, set the REFIND_SBAT_CSV variable in Make.common or
+which .csv file to use, set the REFING_SBAT_CSV variable in Make.common or
 override it on the command line, as in:
 
-make REFIND_SBAT_CSV=foo.csv all
+make REFING_SBAT_CSV=foo.csv all
 
 If you don't care about SBAT support and compiling rEFIng fails when adding
 the SBAT section, you can set the OMIT_SBAT variable to 1, as in:
@@ -89,18 +89,18 @@ With your development system set up, you can compile rEFIng as follows:
 
 3. Change into the archive's main directory. You should see several files
    including this BUILDING.txt file and several subdirectories such as
-   "refind", "libeg", "mok", "filesystems", and "include".
+   "loader", "libeg", "mok", "filesystems", and "include".
 
 4. Type "make" to build rEFIng and gptsync, or "make fs" to build the
    filesystem drivers. Additional "make" targets enable you to fine-tune how
    rEFIng is built and what components are built, as described shortly.
    With any luck, rEFIng will compile without error, leaving the
-   "refind_ia32.efi", "refind_x64.efi", or "refind_aa64.efi" file, depending
-   on your platform, in the "refind" subdirectory. This same step builds the
+   "refing_ia32.efi", "refing_x64.efi", or "refing_aa64.efi" file, depending
+   on your platform, in the "loader" subdirectory. This same step builds the
    "gptsync_ia32.efi", "gptsync_x64.efi", or "gptsync_aa64.efi" program
    file, in the "gptsync" subdirectory. If you plan to build multiple
    architectures, be sure to copy the .efi file for the first build
-   out of the refind subdirectory and type "make clean" before building the
+   out of the loader subdirectory and type "make clean" before building the
    second architecture.
 
 The top-level rEFIng Makefile supports three toolchains, each of which
@@ -112,7 +112,7 @@ that I specify AMD64/x86-64/X64 filenames in the below for simplicity.) The
 * gptsync -- This target builds the gptsync_x64.efi program.
 * fs -- This target builds the filesystem drivers.
 * clean -- This target deletes intermediate build files.
-* install -- This target runs the refind-install script with no
+* install -- This target runs the refing-install script with no
   arguments.
 
 If rEFIng doesn't compile correctly, you'll need to track down the source
@@ -138,8 +138,8 @@ behind-the-times distributions might provide out-of-date versions of this
 package.
 
 If you're building for ARM64 using GNU-EFI, be aware that required
-compilation options changed starting with GNU-EFI 3.0.17. As of rEFInd
-0.14.2, rEFInd's own make options are set up for the older versions of
+compilation options changed starting with GNU-EFI 3.0.17. As of rEFIng
+0.14.2, rEFIng's own make options are set up for the older versions of
 GNU-EFI. If you're using GNU-EFI 3.0.17 or later, you can EITHER:
 
 * Edit Make.common: Change the line that reads "GNUEFI_ARM64_TARGET_SUPPORT
@@ -177,52 +177,52 @@ Installing rEFIng
 =================
 
 With rEFIng compiled, you can install it. The easiest way to do this is
-with the refind-install script, which works on both Linux and macOS.
+with the refing-install script, which works on both Linux and macOS.
 Alternatively, you can type "make install" to install using this script.
 Note that this script copies files to the ESP and uses "efibootmgr" (on
 Linux) or "bless" (on macOS) to add rEFIng to the firmware's boot loader
-list. The docs/man/refind-install.8 file (and its HTML conversion,
-docs/refind/refind-install.html) provides more details on this script and
+list. The docs/man/refing-install.8 file (and its HTML conversion,
+docs/refing/refing-install.html) provides more details on this script and
 its use.
 
-If refind-install doesn't work for you or if you prefer to do the job
+If refing-install doesn't work for you or if you prefer to do the job
 manually, you may. On a UEFI-based system, you'll want to copy files on the
 ESP as follows:
 
-* Create a directory for rEFIng, such as EFI/refind.
-* Copy refind/refind_ia32.efi or refind_x64.efi to the ESP's EFI/refind
+* Create a directory for rEFIng, such as EFI/refing.
+* Copy refing/refing_ia32.efi or refing_x64.efi to the ESP's EFI/refing
   directory.
-* Copy refind.conf-sample to the EFI/refind directory as refind.conf.
-* Copy the icons subdirectory, including all its files, to EFI/refind.
+* Copy refing.conf-sample to the EFI/refing directory as refing.conf.
+* Copy the icons subdirectory, including all its files, to EFI/refing.
 
 You'll then need to activate rEFIng in your EFI. This can be done with
 tools such as "efibootmgr" under Linux or "bless" under macOS. See the
-docs/refind/installing.html file for details.
+docs/refing/installing.html file for details.
 
 
 Note to Distribution Maintainers
 ================================
 
-The refind-install script, and therefore the "install" target in the
+The refing-install script, and therefore the "install" target in the
 Makefile, installs the program directly to the ESP and it modifies the
 *CURRENT COMPUTER's* NVRAM. Thus, you should *NOT* use this target as part
 of the build process for your binary packages (RPMs, Debian packages, etc.).
 (Gentoo could use it in an ebuild, though....) You COULD, however, install
-the files to a directory somewhere (/usr/share/refind or whatever) and then
-call refind-install as part of the binary package installation process.
-Placing the files directly in /boot/efi/EFI/{distname}/refind and then
+the files to a directory somewhere (/usr/share/refing or whatever) and then
+call refing-install as part of the binary package installation process.
+Placing the files directly in /boot/efi/EFI/{distname}/refing and then
 having a post-install script call efibootmgr could also work, but this
 assumes that the ESP is mounted at /boot/efi. Also, Debian packages try to
 create symbolic links when updating packages, which won't work on an ESP,
-which should use FAT. For packaging examples, see the refind.spec file and
+which should use FAT. For packaging examples, see the refing.spec file and
 debian subdirectory of the rEFIng source tarball.
 
 Distribution packagers should create their own SBAT .csv filess, as
 described earlier, in "Preparing SBAT Support" and adjust the
-REFIND_SBAT_CSV variable in Make.common or override it on the make command
+REFING_SBAT_CSV variable in Make.common or override it on the make command
 line, as in:
 
-make REFIND_SBAT_CSV=foo.csv all
+make REFING_SBAT_CSV=foo.csv all
 
 
 Adding Support for Network Boot

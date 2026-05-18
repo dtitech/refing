@@ -1,4 +1,4 @@
-Template: refind/install_to_esp
+Template: refing/install_to_esp
 Type: boolean
 Default: true
 _Description: Automatically install rEFIng to the ESP?
@@ -7,5 +7,5 @@ _Description: Automatically install rEFIng to the ESP?
  .
  Not installing the new rEFIng binary on the ESP may leave the system in an
  unbootable state. Alternatives to automatically installing rEFIng include
- running /usr/sbin/refind-install by hand or installing the rEFIng binaries
- manually by copying them from subdirectories of /usr/share/refind-{version}.
+ running /usr/sbin/refing-install by hand or installing the rEFIng binaries
+ manually by copying them from subdirectories of /usr/share/refing-{version}.

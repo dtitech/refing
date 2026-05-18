@@ -22,6 +22,6 @@ all: $(TARGET)
 include $(SRCDIR)/../Make.common
 
 clean:
-	rm -f $(TARGET) *~ *.so $(OBJS) *.efi *.obj refind_*.txt refind_*.dll *.lib
+	rm -f $(TARGET) *~ *.so $(OBJS) *.efi *.obj refing_*.txt refing_*.dll *.lib
 
 # EOF

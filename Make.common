@@ -44,8 +44,8 @@ ARCH            ?= $(HOSTARCH)
 # Pointer to SBAT .csv file. First is default; uncomment second (or make your
 # your own) if you build your own binary. If you make changes and build your
 # own binary, creating your own file is the best practice.
-REFIND_SBAT_CSV = refind-sbat.csv
-#REFIND_SBAT_CSV = refind-sbat-local.csv
+REFING_SBAT_CSV = refing-sbat.csv
+#REFING_SBAT_CSV = refing-sbat-local.csv
 
 prefix          = /usr/bin/
 ifeq ($(ARCH),aarch64)
@@ -72,7 +72,7 @@ OPTIMFLAGS      = -Os -fno-strict-aliasing -fno-tree-loop-distribute-patterns
 GNUEFI_CFLAGS   = -DGNU_EFI_USE_MS_ABI -mabi=ms
 CFLAGS          = $(OPTIMFLAGS) $(GNUEFI_CFLAGS) -fno-stack-protector -fshort-wchar -Wall
 
-GNUEFI_CFLAGS   = -fpic -I$(EFIINC) -I$(EFIINC)/$(ARCH) -I$(EFIINC)/protocol -I../include -I../refind -I../libeg -I../mok -I../gzip
+GNUEFI_CFLAGS   = -fpic -I$(EFIINC) -I$(EFIINC)/$(ARCH) -I$(EFIINC)/protocol -I../include -I../loader -I../libeg -I../mok -I../gzip
 
 #
 # Linker flags

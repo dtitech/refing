@@ -1,4 +1,4 @@
-# meta-Makefile for rEFInd filesystem drivers
+# meta-Makefile for rEFIng filesystem drivers
 #
 # Most of the functionality is in Make.driver; this Makefile merely
 # deletes critical temporary files and calls Make.driver with the
@@ -11,7 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-INSTALL_DIR = /boot/efi/EFI/refind/drivers
+INSTALL_DIR = /boot/efi/EFI/refing/drivers
 
 FILESYSTEMS = ext2 ext4 reiserfs iso9660 hfs btrfs
 TEXTFILES = $(FILESYSTEMS:=*.txt)

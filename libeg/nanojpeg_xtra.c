@@ -25,8 +25,8 @@
  */
 
 #include "global.h"
-#include "../refind/screen.h"
-#include "../refind/lib.h"
+#include "../loader/screen.h"
+#include "../loader/lib.h"
 // nanojpeg.c is weird; it doubles as both a header file and a .c file,
 // depending on whether _NJ_INCLUDE_HEADER_ONLY is defined....
 #define _NJ_INCLUDE_HEADER_ONLY

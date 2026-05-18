@@ -9,7 +9,7 @@ Files come with three extensions. A filename ending in .crt is a
 certificate file that can be used by sbverify to verify the authenticity of
 a key, as in:
 
-$ sbverify --cert keys/refing.crt refind/refing_x64.efi
+$ sbverify --cert keys/refing.crt refing/refing_x64.efi
 
 The .cer and .der filename extensions are equivalent, and are public key
 files similar to .crt files, but in a different form. The MokManager
@@ -70,7 +70,7 @@ The files in this directory are, in alphabetical order:
   GRUB binaries, though.)
 
 - refind.cer & refind.crt -- My own (Roderick W. Smith's) public key,
-  matched to the one used to sign refind_x64.efi and the 64-bit rEFInd
+  matched to the one used to sign refing_x64.efi and the 64-bit rEFIng
   drivers.
 
 - SLES-UEFI-CA-Certificate.cer & SLES-UEFI-CA-Certificate.crt -- The Public

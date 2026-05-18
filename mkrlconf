@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Script to create a refind_linux.conf file for the current Linux
+# Script to create a refing_linux.conf file for the current Linux
 # installation.
 
 # copyright (c) 2012-2015 by Roderick W. Smith
@@ -30,7 +30,7 @@
 # Note: mkrlconf version numbers match those of the rEFIng package
 # with which they first appeared.
 
-RLConfFile="/boot/refind_linux.conf"
+RLConfFile="/boot/refing_linux.conf"
 
 if [[ $(uname -s) != "Linux" ]] ; then
     echo "This script is intended to be run from Linux. Aborting!"

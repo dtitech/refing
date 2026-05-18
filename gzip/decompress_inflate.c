@@ -6,8 +6,8 @@
  * 
  */
 
-#include "../refind/lib.h"
-#include "../refind/log.h"
+#include "../loader/lib.h"
+#include "../loader/log.h"
 
 #define malloc AllocatePool
 #define free MyFreePool
